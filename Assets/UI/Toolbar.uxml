@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="Main.uss" />
+    <ui:VisualElement name="Toolbar" class="toolbar" style="flex-direction: row;">
+        <Controls.ToolButton name="PenTool" class="pen selected" />
+        <Controls.ToolButton name="EraserTool" class="eraser" />
+        <Controls.ToolButton name="FloodfillTool" class="floodfill" />
+        <Controls.ColorPalette />
+        <Controls.BrushSizePalette />
+    </ui:VisualElement>
+</ui:UXML>

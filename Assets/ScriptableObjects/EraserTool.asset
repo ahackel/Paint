@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7c2e19d06fc410aa7994595201c2433, type: 3}
+  m_Name: EraserTool
+  m_EditorClassIdentifier: 
+  Color: {r: 1, g: 1, b: 1, a: 1}
+  UseOwnColor: 1
+  QuadraticInterpolation: 1
+  BrushMaterial: {fileID: 2100000, guid: b640f70f908ac45b0a32ddf0aedbb6fe, type: 2}
+  BrushRotation: 0
+  BrushScale: 1
+  BrushSize: 69.7
+  BrushSpacing: 0.01
+  PenPressureInfluence: 0.3

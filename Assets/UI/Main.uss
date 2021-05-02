@@ -1,0 +1,138 @@
+.tool-button {
+    width: 60px;
+    height: 60px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    background-color: rgb(211, 211, 211);
+}
+
+.popup-palette {
+    width: 60px;
+    height: 60px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    background-color: rgb(211, 211, 211);
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.tool-button.selected {
+    background-color: rgb(88, 176, 255);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.tool-button.pen .tool-button-image {
+    background-image: url('/Assets/Textures/highlighter-solid.svg');
+}
+
+.tool-button-image {
+    background-image: url('/Assets/Textures/Eraser.png');
+    flex-grow: 1;
+    -unity-background-image-tint-color: rgb(0, 0, 0);
+}
+
+.tool-button.eraser .tool-button-image {
+    background-image: url('/Assets/Textures/eraser-solid.svg');
+}
+
+.tool-button.floodfill .tool-button-image {
+    background-image: url('/Assets/Textures/fill-drip-solid.svg');
+}
+
+.popup-palette-option {
+    background-color: rgb(255, 0, 0);
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
+    border-top-right-radius: 50%;
+    border-bottom-right-radius: 50%;
+    border-left-width: 10px;
+    border-right-width: 10px;
+    border-top-width: 10px;
+    border-bottom-width: 10px;
+    border-left-color: rgba(211, 211, 211, 255);
+    border-right-color: rgba(211, 211, 211, 255);
+    border-top-color: rgba(211, 211, 211, 255);
+    border-bottom-color: rgba(211, 211, 211, 255);
+}
+
+.toolbar {
+    background-color: rgb(211, 211, 211);
+    flex-direction: row;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.tool-button.selected .tool-button-image {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.popup-palette-panel {
+    width: auto;
+    height: auto;
+    background-color: rgb(211, 211, 211);
+    position: absolute;
+    top: 80px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    min-width: 60px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+.popup-palette-arrow {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: -8px;
+    top: -16px;
+    margin-left: 50%;
+    background-image: url('/Assets/Textures/ArrowUp.png');
+    -unity-background-image-tint-color: rgb(211, 211, 211);
+}
+
+.color-palette .popup-palette-panel {
+    left: -210px;
+    width: 480px;
+    flex-direction: row;
+}
+
+.brush-size-palette .popup-palette-option {
+    background-color: black;
+}

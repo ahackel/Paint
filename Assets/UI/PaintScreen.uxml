@@ -1,0 +1,3 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Image name="CanvasImage" style="flex-shrink: 0; position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
+</ui:UXML>

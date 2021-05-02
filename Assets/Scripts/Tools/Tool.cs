@@ -14,7 +14,17 @@ namespace Tools
             public float BrushSize;
         }
         
-        public virtual bool Paint(RenderTexture targetTexture, List<PaintParameters> parameters)
+        public virtual bool Down(RenderTexture targetTexture, List<PaintParameters> parameters)
+        {
+            return false;
+        }
+
+        public virtual bool Up(RenderTexture targetTexture, List<PaintParameters> parameters)
+        {
+            return false;
+        }
+
+        public virtual bool Move(RenderTexture targetTexture, List<PaintParameters> parameters)
         {
             return false;
         }

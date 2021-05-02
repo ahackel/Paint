@@ -28,7 +28,7 @@ namespace Tools
         [Range(1f, 10f)]
         private const float MaxBrushScaleFromTilt = 4f;
 
-        public override bool Paint(RenderTexture targetTexture, List<PaintParameters> parameters)
+        public override bool Move(RenderTexture targetTexture, List<PaintParameters> parameters)
         {
 	        var current = parameters[0];
 	        var previous = parameters.Count > 1 ? parameters[1] : current;

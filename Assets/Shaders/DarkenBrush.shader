@@ -40,6 +40,7 @@
         float4 frag (v2f i) : SV_Target
         {
             float4 tex = tex2D(_MainTex, i.uv);
+            tex.a = step(0.5, tex.a);
             return float4(tex.rgb * i.color.rgb + (1 - tex.a), tex.a);
         }
 
