@@ -53,7 +53,7 @@
   </PropertyGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\Controls\BrushSizePalette.cs" />
-     <Compile Include="Assets\Scripts\PaintView.cs" />
+     <Compile Include="Assets\Scripts\Views\PaintView.cs" />
      <Compile Include="Assets\Scripts\UndoHistory.cs" />
      <Compile Include="Assets\Scripts\Tools\WaterColorTool.cs" />
      <Compile Include="Assets\Scripts\Controls\BasePopupPalette.cs" />
@@ -61,10 +61,15 @@
      <Compile Include="Assets\Scripts\Tools\FloodFillTool.cs" />
      <Compile Include="Assets\Scripts\Tools\Tool.cs" />
      <Compile Include="Assets\Scripts\Tools\PenTool.cs" />
-     <Compile Include="Assets\Scripts\PaintUtils.cs" />
+     <Compile Include="Assets\Scripts\Utilities\PaintUtils.cs" />
      <Compile Include="Assets\Scripts\Controls\ColorPalette.cs" />
+     <Compile Include="Assets\Scripts\Views\UiView.cs" />
+     <Compile Include="Assets\Scripts\PaintApp.cs" />
+     <Compile Include="Assets\Scripts\UiService.cs" />
+     <Compile Include="Assets\Scripts\Views\BookView.cs" />
      <None Include="Assets\UI\PaintScreen.uxml" />
      <None Include="Assets\Shaders\DarkenBrush.shader" />
+     <None Include="Assets\UI\BookScreen.uxml" />
      <None Include="Assets\UI Toolkit\Sprites\EmojiOne Attribution.txt" />
      <None Include="Assets\Shaders\BlendBrush.shader" />
      <None Include="Assets\UI\PaintUi.uxml" />
