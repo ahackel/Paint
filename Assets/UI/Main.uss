@@ -66,15 +66,23 @@
     background-image: url('/Assets/Textures/fill-drip-solid.svg');
 }
 
+.tool-button.undo .tool-button-image {
+    background-image: url('/Assets/Textures/undo-solid.svg');
+}
+
+.tool-button.redo .tool-button-image {
+    background-image: url('/Assets/Textures/redo-solid.svg');
+}
+
 .popup-palette-option {
     background-color: rgb(255, 0, 0);
     width: 60px;
     height: 60px;
     flex-shrink: 0;
-    border-top-left-radius: 50%;
-    border-bottom-left-radius: 50%;
-    border-top-right-radius: 50%;
-    border-bottom-right-radius: 50%;
+    border-top-left-radius: 40%;
+    border-bottom-left-radius: 40%;
+    border-top-right-radius: 40%;
+    border-bottom-right-radius: 40%;
     border-left-width: 10px;
     border-right-width: 10px;
     border-top-width: 10px;
@@ -135,4 +143,8 @@
 
 .brush-size-palette .popup-palette-option {
     background-color: black;
+}
+
+.unity-disabled {
+    opacity: 0.25;
 }

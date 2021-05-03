@@ -17,32 +17,17 @@ namespace Controls
                 ((ToolButton)ve).Selected = _selected.GetValueFromBag(bag, cc);
             }
         }
+        
+        public event Action Clicked;
+        public event Action DoubleClicked;
+        
 
         private const string USSClassName = "tool-button";
         private const string USSClassNameImage = "tool-button-image";
 
         private VisualElement _image;
         private bool _selected;
-        private Clickable _clickable;
-
-        public Clickable Clickable
-        {
-            get => _clickable;
-            set
-            {
-                if (_clickable != null && _clickable.target == this)
-                {
-                    this.RemoveManipulator(_clickable);
-                }
-
-                _clickable = value;
-
-                if (_clickable != null)
-                {
-                    this.AddManipulator(_clickable);
-                }
-            }
-        }
+        private long _lastClickTime;
 
         public bool Selected
         {
@@ -53,28 +38,7 @@ namespace Controls
                 EnableInClassList("selected", _selected);
             }
         }
-        
-        public event Action Clicked
-        {
-            add
-            {
-                if (_clickable == null)
-                {
-                    Clickable = new Clickable(value);
-                }
-                else
-                {
-                    _clickable.clicked += value;
-                }
-            }
-            remove
-            {
-                if (_clickable != null)
-                {
-                    _clickable.clicked -= value;
-                }
-            }
-        }
+
         
         public ToolButton()
         {
@@ -83,6 +47,20 @@ namespace Controls
             _image = new VisualElement { name = "tool-button-image", pickingMode = PickingMode.Ignore };
             _image.AddToClassList(USSClassNameImage);
             Add(_image);
+            RegisterCallback<PointerDownEvent>(OnPointerDown);
+        }
+
+        private void OnPointerDown(PointerDownEvent evt)
+        {
+            if (evt.timestamp - _lastClickTime < 400f && DoubleClicked != null)
+            {
+                DoubleClicked?.Invoke();
+            }
+            else
+            {
+                Clicked?.Invoke();
+            }
+            _lastClickTime = evt.timestamp;
         }
     }
 }

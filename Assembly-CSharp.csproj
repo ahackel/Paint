@@ -52,7 +52,10 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\Controls\BrushSizePalette.cs" />
      <Compile Include="Assets\Scripts\PaintView.cs" />
+     <Compile Include="Assets\Scripts\UndoHistory.cs" />
+     <Compile Include="Assets\Scripts\Tools\WaterColorTool.cs" />
      <Compile Include="Assets\Scripts\Controls\BasePopupPalette.cs" />
      <Compile Include="Assets\Scripts\Controls\ToolButton.cs" />
      <Compile Include="Assets\Scripts\Tools\FloodFillTool.cs" />
@@ -60,11 +63,10 @@
      <Compile Include="Assets\Scripts\Tools\PenTool.cs" />
      <Compile Include="Assets\Scripts\PaintUtils.cs" />
      <Compile Include="Assets\Scripts\Controls\ColorPalette.cs" />
-     <Compile Include="Assets\Scripts\Controls\BrushSizePalette.cs" />
      <None Include="Assets\UI\PaintScreen.uxml" />
      <None Include="Assets\Shaders\DarkenBrush.shader" />
      <None Include="Assets\UI Toolkit\Sprites\EmojiOne Attribution.txt" />
-     <None Include="Assets\Shaders\EraserBrush.shader" />
+     <None Include="Assets\Shaders\BlendBrush.shader" />
      <None Include="Assets\UI\PaintUi.uxml" />
      <None Include="Assets\UI\Main.uss" />
      <None Include="Assets\UI\Toolbar.uxml" />

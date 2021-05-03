@@ -28,4 +28,16 @@ public static class PaintUtils
             
 		return start * f1 + control * f2 + end * f3;
 	}
+	
+	public static Texture2D CaptureRenderTexture(this RenderTexture renderTexture)
+	{
+		var width = renderTexture.width;
+		var height = renderTexture.height;
+		var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+		RenderTexture.active = renderTexture;
+		texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+		texture.Apply(false);
+		RenderTexture.active = null;
+		return texture;
+	}
 }

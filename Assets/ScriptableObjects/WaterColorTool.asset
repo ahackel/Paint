@@ -9,8 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a8fa074ddff49c1852c1856668ca3c9, type: 3}
-  m_Name: FloodfillTool
+  m_Script: {fileID: 11500000, guid: f8bf339abf684b0c9f7d200e3b2b8c2a, type: 3}
+  m_Name: WaterColorTool
   m_EditorClassIdentifier: 
+  Color: {r: 1, g: 0, b: 0, a: 1}
+  UseOwnColor: 1
+  QuadraticInterpolation: 0
   BrushMaterial: {fileID: 2100000, guid: b640f70f908ac45b0a32ddf0aedbb6fe, type: 2}
-  Threshold: 7
+  BrushRotation: 0
+  BrushScale: 1
+  BrushSize: 32
+  BrushSpacing: 0.01
+  BrushMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  PenPressureInfluence: 0.3

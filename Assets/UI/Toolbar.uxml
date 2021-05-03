@@ -2,9 +2,12 @@
     <Style src="Main.uss" />
     <ui:VisualElement name="Toolbar" class="toolbar" style="flex-direction: row;">
         <Controls.ToolButton name="PenTool" class="pen selected" />
+        <Controls.ToolButton name="WaterColorTool" />
         <Controls.ToolButton name="EraserTool" class="eraser" />
         <Controls.ToolButton name="FloodfillTool" class="floodfill" />
         <Controls.ColorPalette />
         <Controls.BrushSizePalette />
+        <Controls.ToolButton name="Undo" class="undo" />
+        <Controls.ToolButton name="Redo" class="redo disabled" />
     </ui:VisualElement>
 </ui:UXML>

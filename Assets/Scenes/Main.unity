@@ -184,7 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fe824569ccea409c9bd8cb4f4c73faf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Color: {r: 0, g: 0, b: 0, a: 1}
+  Color: {r: 0.15138839, g: 0.509434, b: 0.24213417, a: 1}
   BrushSize: 30
   CurrentTool: {fileID: 11400000, guid: 32bbee83750e847058f8bc083d796540, type: 2}
   Ui: {fileID: 924895358}
@@ -193,6 +193,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 32bbee83750e847058f8bc083d796540, type: 2}
   - {fileID: 11400000, guid: 117d6bbb759bd4d6fa95c68219065410, type: 2}
   - {fileID: 11400000, guid: 2c07b917a211c4baaa3f7ccec84e8fbd, type: 2}
+  - {fileID: 11400000, guid: d8530763c97f146d4b2fc55194e8e073, type: 2}
 --- !u!1 &924895357
 GameObject:
   m_ObjectHideFlags: 0

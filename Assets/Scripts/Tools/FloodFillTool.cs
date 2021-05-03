@@ -9,47 +9,46 @@ namespace Tools
     [CreateAssetMenu(fileName = "FloodFillTool", menuName = "FloodFillTool", order = 0)]
     public class FloodFillTool : Tool
     {
+        [Header("Brush")]
+        public Material BrushMaterial;
+        [Range(0, 255)]
+        public int Threshold = 0;
+
         public override bool Down(RenderTexture targetTexture, List<PaintParameters> parameters)
         {
-            FloodFill(targetTexture, Vector2Int.FloorToInt(parameters[0].Position), parameters[0].Color);
-			return true;
-        }
-
-        private void FloodFill(RenderTexture renderTexture, Vector2Int position, Color color)
-        {
-            RenderTexture.active = renderTexture;
-
-            var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
-            texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
-            FloodFill(texture, position, color);
-            Graphics.Blit(texture, renderTexture);
+            var width = targetTexture.width;
+            var height = targetTexture.height;
+            var texture = targetTexture.CaptureRenderTexture();
             
-            RenderTexture.active = null;
-        }
-
-        private void FloodFill(Texture2D texture, Vector2Int position, Color color)
-        {
-            var pixels = texture.GetPixels32();
-            FloodFill(pixels, texture.width, texture.height, position, color);
-            texture.SetPixels32(pixels);
+            var sourcePixels = texture.GetPixels32();
+            var maskPixels = new Color32[sourcePixels.Length];
+            var intPosition = Vector2Int.FloorToInt(parameters[0].Position);
+            FloodFill(sourcePixels, maskPixels, width, height, intPosition, parameters[0].Color);
+            texture.SetPixels32(maskPixels);
             texture.Apply(false);
+
+            BrushMaterial.color = parameters[0].Color;
+            Graphics.Blit(texture, targetTexture, BrushMaterial);
+
+			return true;
         }
 
         private bool EqualColors(Color32 a, Color32 b)
         {
             var sumA = a.r + a.g + a.b;
             var sumB = b.r + b.g + b.b;
-            return Mathf.Abs(sumA - sumB) < 32;
+            return Mathf.Abs(sumA - sumB) <= Threshold * 3;
         }
 
-        private void FloodFill(Color32[] pixels, int width, int height, Vector2Int startPosition, Color32 color)
+        private void FloodFill(Color32[] sourcePixels, Color32[] maskPixels,
+            int width, int height, Vector2Int startPosition, Color32 color)
         {
             var startIndex = startPosition.x + startPosition.y * width;
-            var startColor = pixels[startIndex];
-            var r = (byte)Mathf.Min(color.r, startColor.r);
-            var g = (byte)Mathf.Min(color.g, startColor.g);
-            var b = (byte)Mathf.Min(color.b, startColor.b);
-            color = new Color32(r, g, b, color.a);
+            var startColor = sourcePixels[startIndex];
+            // var r = (byte)Mathf.Min(color.r, startColor.r);
+            // var g = (byte)Mathf.Min(color.g, startColor.g);
+            // var b = (byte)Mathf.Min(color.b, startColor.b);
+            // color = new Color32(r, g, b, color.a);
             
             if (EqualColors(startColor, color))
             {
@@ -62,7 +61,7 @@ namespace Tools
             while (toProcess.Count > 0)
             {
                 var index = toProcess.Pop();
-                if (!EqualColors(pixels[index], startColor))
+                if (maskPixels[index].a != 0 || !EqualColors(sourcePixels[index], startColor))
                 {
                     continue;
                 }
@@ -82,12 +81,12 @@ namespace Tools
                 while (minX >= 0)
                 {
                     var current = minX + y * width;
-                    if (!EqualColors(pixels[current], startColor))
+                    if (!EqualColors(sourcePixels[current], startColor))
                     {
                         break;
                     }
 
-                    pixels[current] = color;
+                    maskPixels[current] = Color.white;
                     minX -= 1;
                 }
 
@@ -100,12 +99,12 @@ namespace Tools
                 while (maxX < width)
                 {
                     var current = maxX + y * width;
-                    if (!EqualColors(pixels[current], startColor))
+                    if (!EqualColors(sourcePixels[current], startColor))
                     {
                         break;
                     }
 
-                    pixels[current] = color;
+                    maskPixels[current] = Color.white;
                     maxX += 1;
                 }
 
@@ -122,7 +121,7 @@ namespace Tools
                 for (int cx = minX + 1; cx < maxX; cx++)
                 {
                     var current = cx + y * width;
-                    if (!EqualColors(pixels[current], startColor))
+                    if (!EqualColors(sourcePixels[current], startColor))
                     {
                         continue;
                     }

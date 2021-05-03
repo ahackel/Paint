@@ -24,9 +24,12 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 	private List<Tool.PaintParameters> PaintParameters = new List<Tool.PaintParameters>(3);
 	private bool _isPainting;
 	private ToolButton[] _toolButtons;
+	private ToolButton _undoButton;
+	private ToolButton _redoButton;
 	private Image _canvasImage;
 	private ColorPalette _colorPalette;
 	private BrushSizePalette _brushSizePalette;
+	private readonly UndoHistory<Texture2D> _history = new UndoHistory<Texture2D>();
 
 	private const string TextureFilename = "Image01.png";
 
@@ -73,7 +76,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 		new Color32(0x8f, 0x97, 0x4a, 0xFF),
 		new Color32(0x8a, 0x6f, 0x30, 0xFF)
 	};
-
+	
 	private void OnEnable()
 	{
 		Application.targetFrameRate = 60;
@@ -83,7 +86,8 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 		
 		_canvasImage = PaintScreen.rootVisualElement.Q<Image>("CanvasImage");
 		_canvasImage.image = _renderTexture;
-		_canvasImage.RegisterCallback<MouseDownEvent>(e => StartPainting());
+		_canvasImage.RegisterCallback<PointerDownEvent>(e => StartPainting());
+		_canvasImage.RegisterCallback<PointerUpEvent>(e => StopPainting());
 
 		_toolButtons = new ToolButton[Tools.Length];
 		for (var i = 0; i < Tools.Length; i++)
@@ -98,23 +102,26 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 
 			if (tool.name == "EraserTool")
 			{
-				_toolButtons[i].RegisterCallback<PointerDownEvent>(evt =>
-				{
-					if (evt.clickCount > 1)
-					{
-						Clear();
-					}
-				});
+				_toolButtons[i].DoubleClicked += Clear;
 			}
 		}
+
+		_undoButton = root.Q<ToolButton>("Undo");
+		_undoButton.Clicked += Undo;
+		_redoButton = root.Q<ToolButton>("Redo");
+		_redoButton.Clicked += Redo;
 
 		_colorPalette = root.Q<ColorPalette>();
 		_colorPalette.Choices = _colors;
 		_colorPalette.RegisterCallback<ChangeEvent<Color>>(evt => Color = evt.newValue);
+		_colorPalette.Value = Color;
 
 		_brushSizePalette = root.Q<BrushSizePalette>();
 		_brushSizePalette.Choices = _brushSizes;
 		_brushSizePalette.RegisterCallback<ChangeEvent<float>>(evt => BrushSize = evt.newValue);
+		_brushSizePalette.Value = BrushSize;
+		
+		ResetUndoHistory();
 	}
 
 	private void SelectTool(Tool newTool)
@@ -152,12 +159,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 	private void StoreTexture()
 	{
 		var path = $"{Application.persistentDataPath}/{TextureFilename}";
-		var width = _renderTexture.width;
-		var height = _renderTexture.height;
-		var texture = new Texture2D(width, height);
-		RenderTexture.active = _renderTexture;
-		texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-		RenderTexture.active = null;
+		var texture = _history.GetCurrentState();
 		var bytes = texture.EncodeToPNG();
 		Destroy(texture);
 		File.WriteAllBytes(path, bytes);
@@ -181,7 +183,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 		return screenPosition;
 	}
 
-	private void Update()
+	private void FixedUpdate()
 	{
 		// DrawCursor();
 		if (!_isPainting)
@@ -190,7 +192,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 		}
 		
 		var pointer = Pointer.current;
-		if (pointer == null || !pointer.press.isPressed || CurrentTool == null)
+		if (pointer == null || CurrentTool == null)
 		{
 			StopPainting();
 			return;
@@ -224,6 +226,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 	public void Clear()
 	{
 		Clear(Color.white);
+		RecordUndo();
 	}
 
 	public void Clear(Color color)
@@ -235,10 +238,55 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 
 	private void StartPainting()
 	{
+		if (_isPainting)
+		{
+			return;
+		}
+		
 		_isPainting = true;
 		PaintParameters.Clear();
 		PaintParameters.Add(GetPaintParameters());
 		CurrentTool.Down(_renderTexture, PaintParameters);
+	}
+
+	private void RecordUndo()
+	{
+		_history.RecordState(_renderTexture.CaptureRenderTexture());
+		UpdateUndoButtonState();
+	}
+
+	private void ResetUndoHistory()
+	{
+		_history.Clear();
+		RecordUndo();
+	}
+
+	public void Undo()
+	{
+		if (!_history.CanUndo())
+		{
+			return;
+		}
+
+		Graphics.Blit(_history.Undo(), _renderTexture);
+		UpdateUndoButtonState();
+	}
+
+	public void Redo()
+	{
+		if (!_history.CanRedo())
+		{
+			return;
+		}
+
+		Graphics.Blit(_history.Redo(), _renderTexture);
+		UpdateUndoButtonState();
+	}
+
+	private void UpdateUndoButtonState()
+	{
+		_undoButton.SetEnabled(_history.CanUndo());
+		_redoButton.SetEnabled(_history.CanRedo());
 	}
 
 	private Tool.PaintParameters GetPaintParameters()
@@ -247,6 +295,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 		var pen = Pen.current;
 		return new Tool.PaintParameters
 		{
+			IsPen = pointer is Pen,
 			Position = ScreenToTexture(pointer.position.ReadValue()),
 			Pressure = pointer.pressure.ReadValue(),
 			BrushSize = BrushSize,
@@ -259,6 +308,7 @@ public class PaintView : MonoBehaviour, IPointerDownHandler
 	{
 		CurrentTool.Up(_renderTexture, PaintParameters);
 		_isPainting = false;
+		RecordUndo();
 	}
 
 	public void OnPointerDown(PointerEventData eventData)

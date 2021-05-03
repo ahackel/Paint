@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 
 namespace Tools
 {
-    [CreateAssetMenu(fileName = "PenTool", menuName = "PenTool", order = 0)]
-    public class PenTool : Tool
+    [CreateAssetMenu(fileName = "WaterColorTool", menuName = "WaterColorTool", order = 0)]
+    public class WaterColorTool : Tool
     {
 	    public Color Color;
 	    public bool UseOwnColor;
@@ -21,6 +21,8 @@ namespace Tools
         public float BrushSize = 32f;
         [Range(0.01f, 3f)]
         public float BrushSpacing = 0.01f;
+
+        public Mesh BrushMesh;
 
         [Header("Pen")]
         [Range(0f, 1f)]
@@ -38,7 +40,7 @@ namespace Tools
 	        float brushRotation = BrushRotation;
 			float brushScale = BrushScale;
 			
-			if (current.IsPen)
+			if (Pen.current != null)
 			{
 				var tilt = current.Tilt;
 				var azimuth = Mathf.Atan2(tilt.y, tilt.x);
@@ -55,7 +57,6 @@ namespace Tools
 			var startPressure = previous.Pressure;
 			var endPressure = current.Pressure;
 			var color = UseOwnColor ? Color : current.Color;
-			BrushMaterial.color = color;
 			var distance = Vector2.Distance(endPosition, startPosition);
 
 			var trueBrushDistance = Mathf.Max(1f, brushSize * BrushSpacing);
@@ -69,7 +70,8 @@ namespace Tools
 
 			RenderTexture.active = targetTexture;
 			GL.PushMatrix();
-			GL.LoadPixelMatrix(0, targetTexture.width, 0, targetTexture.height);
+			// GL.LoadPixelMatrix(0, targetTexture.width, 0, targetTexture.height);
+			GL.LoadOrtho();
 
 			foreach (float t in PaintUtils.DrawLine(startPosition, endPosition, trueBrushDistance))
 			{
@@ -84,9 +86,13 @@ namespace Tools
 					size, size);
 
 				var matrix = Matrix4x4.TRS(pos, Quaternion.Euler(0, 0, -brushRotation), new Vector3(brushScale, 1f, 1f)) * Matrix4x4.TRS(-pos, Quaternion.identity, Vector3.one);  ;
-				GL.MultMatrix(matrix);
-				Graphics.DrawTexture(rect, BrushMaterial.mainTexture, BrushMaterial);
+				//GL.MultMatrix(matrix);
+				//Graphics.DrawTexture(rect, BrushMaterial.mainTexture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, color, BrushMaterial);
 			}
+
+			BrushMaterial.SetPass(0);
+			var pos3 = new Vector3(startPosition.x / targetTexture.width, startPosition.y / targetTexture.height, 0);
+			Graphics.DrawMeshNow(BrushMesh, Matrix4x4.TRS(pos3, Quaternion.identity, Vector3.one * 0.1f));
 
 			GL.PopMatrix();
 			RenderTexture.active = null;

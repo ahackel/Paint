@@ -25,7 +25,7 @@ namespace Controls
 
         protected override void SetupChoice(VisualElement element, float choice, int index)
         {
-            var borderWidth = 0.5f * (layout.width - choice);
+            var borderWidth = 0.5f * (60f - choice);
             element.style.borderLeftWidth = borderWidth;
             element.style.borderRightWidth = borderWidth;
             element.style.borderTopWidth = borderWidth;

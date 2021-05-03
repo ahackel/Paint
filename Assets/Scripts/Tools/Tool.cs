@@ -7,6 +7,7 @@ namespace Tools
     {
         public struct PaintParameters
         {
+            public bool IsPen;
             public Vector2 Position;
             public float Pressure;
             public Vector2 Tilt;

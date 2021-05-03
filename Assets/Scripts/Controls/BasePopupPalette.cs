@@ -23,7 +23,14 @@ namespace Controls
         public List<T> Choices
         {
             get => _choices;
-            set => _choices = value;
+            set
+            {
+                _choices = value;
+                if (_index < _choices.Count)
+                {
+                    SetValueWithoutNotify(_choices[_index]);
+                }
+            }
         }
 
         public int Index
@@ -66,7 +73,6 @@ namespace Controls
 
         public BasePopupPalette(List<T> choices)
         {
-            _choices = choices;
             AddToClassList(ussClassName);
 
             RegisterCallback<PointerDownEvent>(OnPointerDownEvent);
@@ -74,6 +80,7 @@ namespace Controls
             _selectedChoiceElement = new VisualElement { name = "popup-palette-selected-option", pickingMode = PickingMode.Ignore };
             _selectedChoiceElement.AddToClassList(optionUssClassName);
             Add(_selectedChoiceElement);
+            
             // _panelContainer = new VisualElement { name = "popup-palette-container" };
             // Add(_panelContainer);
             _panel = new VisualElement { name = "popup-palette-panel", pickingMode = PickingMode.Ignore };
@@ -83,6 +90,7 @@ namespace Controls
             _panel.RegisterCallback<FocusOutEvent>(OnFocusOut);
             Add(_panel);
             Hide();
+            Choices = choices;
         }
 
         private int GetIndexOfElement(VisualElement ve)
