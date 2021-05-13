@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Template name="BookScreen" src="BookScreen.uxml" />
+    <ui:Template name="PaintScreen" src="PaintScreen.uxml" />
+    <ui:Instance template="BookScreen" name="BookScreen" style="left: 0; top: 0; right: 0; bottom: 0; position: absolute;" />
+    <ui:Instance template="PaintScreen" name="PaintScreen" style="left: 0; top: 0; right: 0; bottom: 0; position: absolute;" />
+</ui:UXML>

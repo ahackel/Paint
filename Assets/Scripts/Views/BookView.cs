@@ -1,22 +1,45 @@
+using System.Collections.Generic;
 using UnityEngine.UIElements;
+using Utilities;
 
 namespace Views
 {
     public class BookView : UiView
     {
-        public UIDocument Ui;
+        const int ThumbnailCount = 10;
+
+        private Image[] _thumbnails = new Image[ThumbnailCount];
         
-        private void OnEnable()
+        public override void Initialize()
         {
-            var root = Ui.rootVisualElement;
-            var container = root.Q<VisualElement>("thumbnail-container");
+            base.Initialize();
+            var container = _rootElement.Q<VisualElement>("thumbnail-container");
             container.Clear();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < ThumbnailCount; i++)
             {
-                var thumbnail = new VisualElement();
-                thumbnail.AddToClassList("thumbnail");
-                thumbnail.RegisterCallback<PointerDownEvent>(evt => OpenView("PaintView"));
-                container.Add(thumbnail);
+                _thumbnails[i] = new Image();
+                _thumbnails[i].AddToClassList("thumbnail");
+                
+                var filename = $"image{i:D2}";
+                _thumbnails[i].RegisterCallback<PointerDownEvent>(evt =>
+                {
+                    OpenView("PaintView", filename);
+                });
+                container.Add(_thumbnails[i]);
+            }
+        }
+
+        public override void Opened(object data)
+        {
+            LoadThumbnails();
+        }
+
+        private void LoadThumbnails()
+        {
+            for (int i = 0; i < ThumbnailCount; i++)
+            {
+                var filename = $"image{i:D2}";
+                _thumbnails[i].image = PaintUtils.LoadImageTexture(filename);
             }
         }
     }

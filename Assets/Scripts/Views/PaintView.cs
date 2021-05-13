@@ -19,8 +19,6 @@ namespace Views
 		[Range(1, 100)]
 		public float BrushSize = 32f;
 		public Tool CurrentTool;
-		public UIDocument Ui;
-		public UIDocument PaintScreen;
 		public Tool[] Tools;
 
 		private RenderTexture _renderTexture;
@@ -29,13 +27,13 @@ namespace Views
 		private ToolButton[] _toolButtons;
 		private ToolButton _undoButton;
 		private ToolButton _redoButton;
+		private ToolButton _closeButton;
 		private Image _canvasImage;
 		private ColorPalette _colorPalette;
 		private BrushSizePalette _brushSizePalette;
 		private readonly UndoHistory<Texture2D> _history = new UndoHistory<Texture2D>();
 
-		private const string TextureFilename = "Image01.png";
-
+		private string _imageFilename;
 
 		private readonly List<float> _brushSizes = new List<float>
 		{
@@ -80,17 +78,10 @@ namespace Views
 			new Color32(0x8a, 0x6f, 0x30, 0xFF)
 		};
 
-
-		private void Awake()
+		public override void Initialize()
 		{
-
-		}
-
-		private void OnEnable()
-		{
-			var root = Ui.rootVisualElement;
-		
-			_canvasImage = PaintScreen.rootVisualElement.Q<Image>("CanvasImage");
+			base.Initialize();
+			_canvasImage = _rootElement.Q<Image>("CanvasImage");
 			_canvasImage.RegisterCallback<PointerDownEvent>(e => StartPainting());
 			_canvasImage.RegisterCallback<PointerUpEvent>(e => StopPainting());
 
@@ -102,7 +93,7 @@ namespace Views
 				{
 					throw new Exception("Empty tool in tools list of PaintView");
 				}
-				_toolButtons[i] = root.Q<ToolButton>(tool.name);
+				_toolButtons[i] = _rootElement.Q<ToolButton>(tool.name);
 				_toolButtons[i].Clicked += () => SelectTool(tool);
 
 				if (tool.name == "EraserTool")
@@ -111,17 +102,20 @@ namespace Views
 				}
 			}
 
-			_undoButton = root.Q<ToolButton>("Undo");
+			_undoButton = _rootElement.Q<ToolButton>("Undo");
 			_undoButton.Clicked += Undo;
-			_redoButton = root.Q<ToolButton>("Redo");
+			_redoButton = _rootElement.Q<ToolButton>("Redo");
 			_redoButton.Clicked += Redo;
 
-			_colorPalette = root.Q<ColorPalette>();
+			_closeButton = _rootElement.Q<ToolButton>("Close");
+			_closeButton.Clicked += () => OpenView("BookView");
+
+			_colorPalette = _rootElement.Q<ColorPalette>();
 			_colorPalette.Choices = _colors;
 			_colorPalette.RegisterCallback<ChangeEvent<Color>>(evt => Color = evt.newValue);
 			_colorPalette.Value = Color;
 
-			_brushSizePalette = root.Q<BrushSizePalette>();
+			_brushSizePalette = _rootElement.Q<BrushSizePalette>();
 			_brushSizePalette.Choices = _brushSizes;
 			_brushSizePalette.RegisterCallback<ChangeEvent<float>>(evt => BrushSize = evt.newValue);
 			_brushSizePalette.Value = BrushSize;
@@ -129,17 +123,19 @@ namespace Views
 			_renderTexture = new RenderTexture(Screen.width, Screen.height, 0);
 			_canvasImage.image = _renderTexture;
 
-			ReadTexture();
-			ResetUndoHistory();
-
-			Ui.enabled = false;
-			Ui.enabled = true;
 		}
 
-		private void OnDisable()
+		public override void Opened(object data)
 		{
-			StoreTexture();
-			_renderTexture.Release();
+			var filename = (string) data;
+			ResetUndoHistory();
+			LoadImage(filename);
+		}
+
+		public override void Closing()
+		{
+			SaveImage();
+			//_renderTexture.Release();
 		}
 
 		private void SelectTool(Tool newTool)
@@ -151,26 +147,31 @@ namespace Views
 			}
 		}
 
-		private void ReadTexture()
+		public void LoadImage(string fileName)
 		{
-			try
-			{
-				var path = $"{Application.persistentDataPath}/{TextureFilename}";
-				var bytes = File.ReadAllBytes(path);
-				var texture = new Texture2D(1, 1);
-				texture.LoadImage(bytes);
+			Debug.Log($"LoadImage '{fileName}'");
+			_imageFilename = fileName;
+			var texture = PaintUtils.LoadImageTexture(_imageFilename);
+			
+			if (texture != null){
 				Graphics.Blit(texture, _renderTexture);
 				Destroy(texture);
 			}
-			catch
+			else
 			{
 				Clear(Color.white);
 			}
 		}
 
-		private void StoreTexture()
+		private void SaveImage()
 		{
-			var path = $"{Application.persistentDataPath}/{TextureFilename}";
+			if (string.IsNullOrEmpty(_imageFilename))
+			{
+				return;
+			}
+			
+			Debug.Log($"SaveImage '{_imageFilename}'");
+			var path = $"{Application.persistentDataPath}/{_imageFilename}";
 			var texture = _history.GetCurrentState();
 			var bytes = texture.EncodeToPNG();
 			Destroy(texture);

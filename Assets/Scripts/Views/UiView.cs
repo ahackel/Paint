@@ -1,19 +1,50 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Views
 {
     public abstract class UiView : MonoBehaviour
     {
-        public void Open()
+        public UiService UiService;
+        public string RootElementName;
+        
+        protected VisualElement _rootElement;
+
+        public virtual void Initialize()
         {
-            gameObject.SetActive(true);
+            _rootElement = UiService.UiRoot.Q(RootElementName);
+        }
+
+        public void Open(object data)
+        {
+            if (_rootElement.parent != null)
+            {
+                return;
+            }
+
+            UiService.UiRoot.Add(_rootElement);
+            Opened(data);
         }
 
         public void Close()
         {
-            gameObject.SetActive(false);
+            if (_rootElement.parent == null)
+            {
+                return;
+            }
+
+            Closing();
+            _rootElement.RemoveFromHierarchy();
         }
 
-        public void OpenView(string name) => PaintApp.Instance.UiService.OpenView(name);
+        public virtual void Opened(object data)
+        {
+        }
+
+        public virtual void Closing()
+        {
+        }
+
+        public void OpenView(string name, object data = null) => UiService.OpenView(name, data);
     }
 }

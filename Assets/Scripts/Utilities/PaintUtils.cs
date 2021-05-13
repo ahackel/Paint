@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace Utilities
@@ -41,6 +42,22 @@ namespace Utilities
 			texture.Apply(false);
 			RenderTexture.active = null;
 			return texture;
+		}
+
+		public static Texture2D LoadImageTexture(string filename)
+		{
+			try
+			{
+				var path = $"{Application.persistentDataPath}/{filename}";
+				var bytes = File.ReadAllBytes(path);
+				var texture = new Texture2D(1, 1);
+				texture.LoadImage(bytes);
+				return texture;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 	}
 }

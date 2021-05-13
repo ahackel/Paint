@@ -9,5 +9,6 @@
         <Controls.BrushSizePalette />
         <Controls.ToolButton name="Undo" class="undo" />
         <Controls.ToolButton name="Redo" class="redo disabled" />
+        <Controls.ToolButton name="Close" class="tool-button close" />
     </ui:VisualElement>
 </ui:UXML>
