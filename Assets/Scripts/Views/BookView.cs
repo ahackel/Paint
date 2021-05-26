@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine.UIElements;
 using Utilities;
 
@@ -6,7 +5,7 @@ namespace Views
 {
     public class BookView : UiView
     {
-        const int ThumbnailCount = 10;
+        const int ThumbnailCount = 16;
 
         private Image[] _thumbnails = new Image[ThumbnailCount];
         

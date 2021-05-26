@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -19,6 +20,10 @@ public class PaintApp : MonoBehaviour
         UiService.Initialize(UIDocument.rootVisualElement, Views);
     }
 
+    private void OnEnable()
+    {
+        UiService.Refresh();
+    }
 
     private void Start()
     {

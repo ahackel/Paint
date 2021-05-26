@@ -14,14 +14,29 @@ namespace Tools
 
 	    [Header("Brush")]
 	    public Material BrushMaterial;
+	    public Texture2D BrushTexture;
+	    [Range(0f, 1f)]
+	    public float Flow = 1f;
+	    [Range(0f, 1f)]
+	    public float BrushHardness = 1f;
         [Range(0f, 360f)]
-        public float BrushRotation = 0f;
-        [Range(1f, 4f)]
-        public float BrushScale = 1f;
-        [Range(1, 100)]
-        public float BrushSize = 32f;
+        public float Angle = 0f;
+        [Range(0.01f, 1f)]
+        public float Roundness = 1f;
         [Range(0.01f, 3f)]
         public float BrushSpacing = 0.01f;
+
+        [Header("Jitter")]
+        [Range(0f, 1f)]
+        public float Scatter = 0f;
+        [Range(0f, 1f)]
+        public float AngleJitter = 0f;
+        [Range(0f, 1f)]
+        public float RoundnessJitter = 0f;
+        [Range(0f, 1f)]
+        public float FlowJitter = 0f;
+        [Range(0f, 1f)]
+        public float SizeJitter = 0f;
 
         [Header("Pen")]
         [Range(0f, 1f)]
@@ -29,15 +44,33 @@ namespace Tools
         [Range(1f, 10f)]
         private const float MaxBrushScaleFromTilt = 4f;
 
-        public override bool Move(RenderTexture targetTexture, List<PaintParameters> parameters)
+        private List<PaintParameters> _lastParameters = new List<PaintParameters>();
+
+        public override void Up(RenderTexture targetTexture, PaintParameters parameters)
         {
-	        var current = parameters[0];
-	        var previous = parameters.Count > 1 ? parameters[1] : current;
-	        var last = parameters.Count > 2 ? parameters[2] : previous;
+			_lastParameters.Clear();
+        }
+
+        public override void Move(RenderTexture targetTexture, PaintParameters parameters)
+        {
+	        var current = parameters;
+	        var previous = _lastParameters.Count > 0 ? _lastParameters[0] : current;
+	        var last = _lastParameters.Count > 1 ? _lastParameters[1] : previous;
+	        bool hasMoved = _lastParameters.Count > 0;
 
 	        var brushSize = current.BrushSize;
-	        float brushRotation = BrushRotation;
-			float brushScale = BrushScale;
+	        float angle = Angle;
+			float roundness = Roundness;
+			if (BrushTexture != null)
+			{
+				BrushMaterial.EnableKeyword("USE_TEXTURE");
+			}
+			else
+			{
+				BrushMaterial.DisableKeyword("USE_TEXTURE");
+			}
+			BrushMaterial.SetFloat("_Hardness", BrushHardness);
+			var brushTexture = BrushTexture != null ? BrushTexture : Texture2D.whiteTexture;
 			
 			if (current.IsPen)
 			{
@@ -45,53 +78,80 @@ namespace Tools
 				var azimuth = Mathf.Atan2(tilt.y, tilt.x);
 				var length = Mathf.Clamp01(tilt.magnitude);
 				var altitude = Mathf.Atan2(1f - length, length);
-				brushRotation = azimuth * Mathf.Rad2Deg;
+				angle = azimuth * Mathf.Rad2Deg;
 				var brushAngle = 1f - altitude / (Mathf.PI * 0.5f);
 				// scale brush none linearly:
-				brushScale = 1f + Mathf.Pow(brushAngle, 4f) * MaxBrushScaleFromTilt;
+				roundness = 1f + Mathf.Pow(brushAngle, 4f) * MaxBrushScaleFromTilt;
 			}
 
 			var startPosition = previous.Position;
 			var endPosition = current.Position;
 			var startPressure = previous.Pressure;
 			var endPressure = current.Pressure;
-			var color = UseOwnColor ? Color : current.Color;
-			BrushMaterial.color = color;
 			var distance = Vector2.Distance(endPosition, startPosition);
 
-			var trueBrushDistance = Mathf.Max(1f, brushSize * BrushSpacing);
-			if (distance > 0 && distance < trueBrushDistance)
+			var absoluteBrushDistance = Mathf.Max(1f, brushSize * BrushSpacing);
+			if (hasMoved && distance < absoluteBrushDistance)
 			{
-				return false;
+				return;
 			}
 			
 			var tangent = (startPosition - last.Position).normalized;
+			var normal = new Vector2(tangent.y, -tangent.x);
 			var control = startPosition + tangent * (distance * 0.3f);
 
 			RenderTexture.active = targetTexture;
 			GL.PushMatrix();
 			GL.LoadPixelMatrix(0, targetTexture.width, 0, targetTexture.height);
 
-			foreach (float t in PaintUtils.DrawLine(startPosition, endPosition, trueBrushDistance))
+			Vector2 pos = endPosition;
+
+			foreach (float t in PaintUtils.DrawLine(startPosition, endPosition, absoluteBrushDistance))
 			{
-				var pos = QuadraticInterpolation
+				if (hasMoved && t == 0f)
+				{
+					continue;
+				}
+				
+				pos = QuadraticInterpolation
 					? PaintUtils.PointOnQuadraticCurve(startPosition, control, endPosition, t)
-					: Vector2.Lerp(startPosition, endPosition, t);
+					: Vector2.LerpUnclamped(startPosition, endPosition, t);
+
+				var offset = normal * (Random.Range(-1f, 1f) * brushSize * Scatter);
+				var offsetPos = pos + offset;
+				
 				var pressure = Mathf.Lerp(startPressure, endPressure, t);
-				var size = brushSize * Mathf.Lerp(1f, pressure, PenPressureInfluence);
+				var size = brushSize
+				           * (Mathf.Lerp(1f, pressure, PenPressureInfluence) + Random.Range(-1f, 1f) * SizeJitter);
 				var rect = new Rect(
-					pos.x - 0.5f * size,
-					pos.y - 0.5f * size,
+					offsetPos.x - 0.5f * size,
+					offsetPos.y - 0.5f * size,
 					size, size);
 
-				var matrix = Matrix4x4.TRS(pos, Quaternion.Euler(0, 0, -brushRotation), new Vector3(brushScale, 1f, 1f)) * Matrix4x4.TRS(-pos, Quaternion.identity, Vector3.one);  ;
+				angle = Angle + Mathf.Lerp(0f, Random.Range(-180f, 180f), AngleJitter);
+				var localBrushRotation = Quaternion.Euler(0, 0, -angle);
+				roundness = Mathf.Clamp01(Roundness + Random.Range(-1f, 1f) * RoundnessJitter);
+				
+				var matrix = Matrix4x4.TRS(offsetPos, localBrushRotation,
+					new Vector3(roundness, 1f, 1f)) * Matrix4x4.TRS(-offsetPos, Quaternion.identity, Vector3.one);
 				GL.MultMatrix(matrix);
-				Graphics.DrawTexture(rect, BrushMaterial.mainTexture, BrushMaterial);
+				
+				var color = UseOwnColor ? Color : current.Color;
+				color.a = Mathf.Clamp01(Flow + Random.Range(-1f, 1f) * FlowJitter);
+				BrushMaterial.color = color;
+				Graphics.DrawTexture(rect, brushTexture, BrushMaterial);
 			}
+
+			if (_lastParameters.Count > 1)
+			{
+				_lastParameters.RemoveAt(1);
+			}
+
+			parameters.Position = pos;
+			_lastParameters.Insert(0, parameters);
 
 			GL.PopMatrix();
 			RenderTexture.active = null;
-			return true;
         }
     }
 }

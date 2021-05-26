@@ -4,6 +4,7 @@
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1, 1, 1, 1)
+        _Wetness ("Wetness", Range(0, 1)) = 0
     }
     
     CGINCLUDE
@@ -27,6 +28,7 @@
         sampler2D _MainTex;
         float4 _MainTex_ST;
         float4 _Color;
+        float _Wetness; 
 
         v2f vert (appdata v)
         {
@@ -38,9 +40,11 @@
 
         float4 frag (v2f i) : SV_Target
         {
-            float4 tex = tex2D(_MainTex, i.uv);
-            tex.a = step(0.5, tex.a);
-            return float4(tex.rgb * _Color.rgb + (1 - tex.a), tex.a);
+            const float4 tex = tex2D(_MainTex, i.uv);
+            const float opacity = tex.a * (1 - _Wetness);
+            float wetness = tex.a * _Wetness;
+            // tex.a = step(0.5, tex.a);
+            return float4(lerp(1, tex.rgb * _Color.rgb, opacity), wetness);
         }
 
     ENDCG

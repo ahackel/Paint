@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Controls;
+using Services;
 using Tools;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
-using Utilities;
 using ColorPalette = Controls.ColorPalette;
 using Image = UnityEngine.UIElements.Image;
 
@@ -15,15 +13,8 @@ namespace Views
 {
 	public class PaintView : UiView, IPointerDownHandler
 	{
-		public Color Color;
-		[Range(1, 100)]
-		public float BrushSize = 32f;
-		public Tool CurrentTool;
-		public Tool[] Tools;
-
-		private RenderTexture _renderTexture;
-		private List<Tool.PaintParameters> PaintParameters = new List<Tool.PaintParameters>(3);
-		private bool _isPainting;
+		public PaintDocument PaintDocument;
+		
 		private ToolButton[] _toolButtons;
 		private ToolButton _undoButton;
 		private ToolButton _redoButton;
@@ -31,15 +22,13 @@ namespace Views
 		private Image _canvasImage;
 		private ColorPalette _colorPalette;
 		private BrushSizePalette _brushSizePalette;
-		private readonly UndoHistory<Texture2D> _history = new UndoHistory<Texture2D>();
-
-		private string _imageFilename;
 
 		private readonly List<float> _brushSizes = new List<float>
 		{
+			1f,
 			4f,
 			20f,
-			40f
+			200f
 		};
 
 		private readonly List<Color> _colors = new List<Color>
@@ -82,13 +71,13 @@ namespace Views
 		{
 			base.Initialize();
 			_canvasImage = _rootElement.Q<Image>("CanvasImage");
-			_canvasImage.RegisterCallback<PointerDownEvent>(e => StartPainting());
-			_canvasImage.RegisterCallback<PointerUpEvent>(e => StopPainting());
+			_canvasImage.RegisterCallback<PointerDownEvent>(e => PaintDocument.StartPainting());
+			_canvasImage.RegisterCallback<PointerUpEvent>(e => PaintDocument.StopPainting());
 
-			_toolButtons = new ToolButton[Tools.Length];
-			for (var i = 0; i < Tools.Length; i++)
+			_toolButtons = new ToolButton[PaintDocument.Tools.Length];
+			for (var i = 0; i < PaintDocument.Tools.Length; i++)
 			{
-				var tool = Tools[i];
+				var tool = PaintDocument.Tools[i];
 				if (tool == null)
 				{
 					throw new Exception("Empty tool in tools list of PaintView");
@@ -98,239 +87,78 @@ namespace Views
 
 				if (tool.name == "EraserTool")
 				{
-					_toolButtons[i].DoubleClicked += Clear;
+					_toolButtons[i].DoubleClicked += PaintDocument.Clear;
 				}
 			}
 
 			_undoButton = _rootElement.Q<ToolButton>("Undo");
-			_undoButton.Clicked += Undo;
+			_undoButton.Clicked += () => PaintDocument.Undo();
 			_redoButton = _rootElement.Q<ToolButton>("Redo");
-			_redoButton.Clicked += Redo;
+			_redoButton.Clicked += () => PaintDocument.Redo();
 
 			_closeButton = _rootElement.Q<ToolButton>("Close");
 			_closeButton.Clicked += () => OpenView("BookView");
 
 			_colorPalette = _rootElement.Q<ColorPalette>();
 			_colorPalette.Choices = _colors;
-			_colorPalette.RegisterCallback<ChangeEvent<Color>>(evt => Color = evt.newValue);
-			_colorPalette.Value = Color;
+			_colorPalette.RegisterCallback<ChangeEvent<Color>>(evt => PaintDocument.Color = evt.newValue);
+			_colorPalette.Value = PaintDocument.Color;
 
 			_brushSizePalette = _rootElement.Q<BrushSizePalette>();
 			_brushSizePalette.Choices = _brushSizes;
-			_brushSizePalette.RegisterCallback<ChangeEvent<float>>(evt => BrushSize = evt.newValue);
-			_brushSizePalette.Value = BrushSize;
-			
-			_renderTexture = new RenderTexture(Screen.width, Screen.height, 0);
-			_canvasImage.image = _renderTexture;
-
+			_brushSizePalette.RegisterCallback<ChangeEvent<float>>(evt => PaintDocument.BrushSize = evt.newValue);
+			_brushSizePalette.Value = PaintDocument.BrushSize;
+		}
+		
+		private void SelectTool(Tool newTool)
+		{
+			PaintDocument.CurrentTool = newTool;
+			for (var i = 0; i < PaintDocument.Tools.Length; i++)
+			{
+				_toolButtons[i].Selected = PaintDocument.CurrentTool == PaintDocument.Tools[i];
+			}
 		}
 
 		public override void Opened(object data)
 		{
 			var filename = (string) data;
-			ResetUndoHistory();
-			LoadImage(filename);
+			PaintDocument.LoadImage(filename);
+			PaintDocument.ResetUndoHistory();
 		}
 
 		public override void Closing()
 		{
-			SaveImage();
-			//_renderTexture.Release();
-		}
-
-		private void SelectTool(Tool newTool)
-		{
-			CurrentTool = newTool;
-			for (var i = 0; i < Tools.Length; i++)
+			if (IsOpen)
 			{
-				_toolButtons[i].Selected = CurrentTool == Tools[i];
+				PaintDocument.SaveImage();
 			}
 		}
-
-		public void LoadImage(string fileName)
+		
+		private void Update()
 		{
-			Debug.Log($"LoadImage '{fileName}'");
-			_imageFilename = fileName;
-			var texture = PaintUtils.LoadImageTexture(_imageFilename);
-			
-			if (texture != null){
-				Graphics.Blit(texture, _renderTexture);
-				Destroy(texture);
-			}
-			else
-			{
-				Clear(Color.white);
-			}
-		}
-
-		private void SaveImage()
-		{
-			if (string.IsNullOrEmpty(_imageFilename))
+			if (!IsOpen)
 			{
 				return;
 			}
 			
-			Debug.Log($"SaveImage '{_imageFilename}'");
-			var path = $"{Application.persistentDataPath}/{_imageFilename}";
-			var texture = _history.GetCurrentState();
-			var bytes = texture.EncodeToPNG();
-			Destroy(texture);
-			File.WriteAllBytes(path, bytes);
-		}
-
-		private Vector2 ScreenToTexture(Vector2 screenPosition)
-		{
-			var normalizedPosition = screenPosition / new Vector2(Screen.width, Screen.height);
-			var texturePosition = normalizedPosition * new Vector2(_renderTexture.width, _renderTexture.height);
-			return texturePosition;
-		}
-
-		private Vector2 TextureToScreen(Vector2 texturePosition)
-		{
-			var rectTransform = (RectTransform)transform;
-			var normalizedPosition = texturePosition / new Vector2(_renderTexture.width, _renderTexture.height);
-
-			var localPosition = (normalizedPosition * rectTransform.rect.size) + rectTransform.rect.min;
-			var worldPosition = rectTransform.TransformPoint(localPosition);
-			var screenPosition = RectTransformUtility.WorldToScreenPoint(null, worldPosition);
-			return screenPosition;
-		}
-
-		private void FixedUpdate()
-		{
-			// DrawCursor();
-			if (!_isPainting)
-			{
-				return;
-			}
-		
-			var pointer = Pointer.current;
-			if (pointer == null || CurrentTool == null)
-			{
-				StopPainting();
-				return;
-			}
-
-			if (PaintParameters.Count > 2)
-			{
-				PaintParameters.RemoveAt(2);
-			}
-			PaintParameters.Insert(0, GetPaintParameters());
-
-			if (!CurrentTool.Move(_renderTexture, PaintParameters))
-			{
-				PaintParameters.RemoveAt(0);
-			}
-		}
-
-		private void DrawCursor()
-		{
-			GL.PushMatrix();
-			GL.LoadPixelMatrix(0, _renderTexture.width, 0, _renderTexture.height);
-
-			var position = Pointer.current.position.ReadValue();
-			var size = 10f;
-			var rect = new Rect(position.x - 0.5f * size, position.y - 0.5f * size, size, size);
-			Graphics.DrawTexture(rect, Texture2D.whiteTexture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, Color.green);
-		
-			GL.PopMatrix();
-		}
-
-		public void Clear()
-		{
-			Clear(Color.white);
-			RecordUndo();
-		}
-
-		public void Clear(Color color)
-		{
-			RenderTexture.active = _renderTexture;
-			GL.Clear(false, true, color);
-			RenderTexture.active = null;
-		}
-
-		private void StartPainting()
-		{
-			if (_isPainting)
-			{
-				return;
-			}
-		
-			_isPainting = true;
-			PaintParameters.Clear();
-			PaintParameters.Add(GetPaintParameters());
-			CurrentTool.Down(_renderTexture, PaintParameters);
-		}
-
-		private void RecordUndo()
-		{
-			_history.RecordState(_renderTexture.CaptureRenderTexture());
+			PaintDocument.Update();
 			UpdateUndoButtonState();
 		}
 
-		private void ResetUndoHistory()
+		private void OnPostRender()
 		{
-			_history.Clear();
-			RecordUndo();
+			// PaintDocument.Draw();
 		}
 
-		public void Undo()
+		public void UpdateUndoButtonState()
 		{
-			if (!_history.CanUndo())
-			{
-				return;
-			}
-
-			Graphics.Blit(_history.Undo(), _renderTexture);
-			UpdateUndoButtonState();
-		}
-
-		public void Redo()
-		{
-			if (!_history.CanRedo())
-			{
-				return;
-			}
-
-			Graphics.Blit(_history.Redo(), _renderTexture);
-			UpdateUndoButtonState();
-		}
-
-		private void UpdateUndoButtonState()
-		{
-			_undoButton.SetEnabled(_history.CanUndo());
-			_redoButton.SetEnabled(_history.CanRedo());
-		}
-
-		private Tool.PaintParameters GetPaintParameters()
-		{
-			var pointer = Pointer.current;
-			var pen = Pen.current;
-			return new Tool.PaintParameters
-			{
-				IsPen = pointer is Pen,
-				Position = ScreenToTexture(pointer.position.ReadValue()),
-				Pressure = pointer.pressure.ReadValue(),
-				BrushSize = BrushSize,
-				Tilt = pen != null ? pen.tilt.ReadValue() : Vector2.zero,
-				Color = Color
-			};
-		}
-
-		private void StopPainting()
-		{
-			CurrentTool.Up(_renderTexture, PaintParameters);
-			_isPainting = false;
-			RecordUndo();
+			_undoButton.SetEnabled(PaintDocument.CanUndo());
+			_redoButton.SetEnabled(PaintDocument.CanRedo());
 		}
 
 		public void OnPointerDown(PointerEventData eventData)
 		{
-			if (CurrentTool == null)
-			{
-				return;
-			}
-			StartPainting();
+			PaintDocument.StartPainting();
 		}
 	}
 }

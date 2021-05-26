@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 namespace Tools
 {
@@ -14,20 +15,20 @@ namespace Tools
             public Color Color;
             public float BrushSize;
         }
+
+        [Range(0f, 1f)]
+        public float Opacity = 1f;
         
-        public virtual bool Down(RenderTexture targetTexture, List<PaintParameters> parameters)
+        public virtual void Down(RenderTexture targetTexture, PaintParameters parameters)
         {
-            return false;
         }
 
-        public virtual bool Up(RenderTexture targetTexture, List<PaintParameters> parameters)
+        public virtual void Up(RenderTexture targetTexture, PaintParameters parameters)
         {
-            return false;
         }
 
-        public virtual bool Move(RenderTexture targetTexture, List<PaintParameters> parameters)
+        public virtual void Move(RenderTexture targetTexture, PaintParameters parameters)
         {
-            return false;
         }
     }
 }

@@ -9,6 +9,9 @@ namespace Views
         public string RootElementName;
         
         protected VisualElement _rootElement;
+        private bool _isOpen;
+
+        public bool IsOpen => _isOpen;
 
         public virtual void Initialize()
         {
@@ -23,6 +26,7 @@ namespace Views
             }
 
             UiService.UiRoot.Add(_rootElement);
+            _isOpen = true;
             Opened(data);
         }
 
@@ -34,6 +38,7 @@ namespace Views
             }
 
             Closing();
+            _isOpen = false;
             _rootElement.RemoveFromHierarchy();
         }
 

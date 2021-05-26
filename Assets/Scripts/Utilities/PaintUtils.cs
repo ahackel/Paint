@@ -9,19 +9,17 @@ namespace Utilities
 		public static IEnumerable<float> DrawLine(Vector2 start, Vector2 end, float stepLength)
 		{
 			float dist = Vector2.Distance(start, end);
-			int stepCount = Mathf.FloorToInt(dist / stepLength);
+			float fStepCount = dist / stepLength;
+			int stepCount = Mathf.FloorToInt(fStepCount);
 			float position = 0f;
     
-			yield return position;
+			//yield return position;
         	
-			for (int i = 1; i < stepCount; i++)
+			for (int i = 1; i <= stepCount + 1; i++)
 			{
 				yield return position;
-				position = (float)i / stepCount;
+				position = i / fStepCount;
 			}
-    
-			// Leave last point to avoid overlapping:
-			//yield return 1f;
 		}
 
 		public static Vector2 PointOnQuadraticCurve(Vector2 start, Vector2 control, Vector2 end, float a) {

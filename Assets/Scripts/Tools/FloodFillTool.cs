@@ -15,7 +15,7 @@ namespace Tools
         [Range(0, 255)]
         public int Threshold = 0;
 
-        public override bool Down(RenderTexture targetTexture, List<PaintParameters> parameters)
+        public override void Down(RenderTexture targetTexture, PaintParameters parameters)
         {
             var width = targetTexture.width;
             var height = targetTexture.height;
@@ -23,15 +23,13 @@ namespace Tools
             
             var sourcePixels = texture.GetPixels32();
             var maskPixels = new Color32[sourcePixels.Length];
-            var intPosition = Vector2Int.FloorToInt(parameters[0].Position);
-            FloodFill(sourcePixels, maskPixels, width, height, intPosition, parameters[0].Color);
+            var intPosition = Vector2Int.FloorToInt(parameters.Position);
+            FloodFill(sourcePixels, maskPixels, width, height, intPosition, parameters.Color);
             texture.SetPixels32(maskPixels);
             texture.Apply(false);
 
-            BrushMaterial.color = parameters[0].Color;
+            BrushMaterial.color = parameters.Color;
             Graphics.Blit(texture, targetTexture, BrushMaterial);
-
-			return true;
         }
 
         private bool EqualColors(Color32 a, Color32 b)
