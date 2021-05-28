@@ -15,28 +15,37 @@ namespace Tools
         [Range(0, 255)]
         public int Threshold = 0;
 
-        public override void Down(RenderTexture targetTexture, PaintParameters parameters)
+        public override void Down(RenderTexture targetTexture, PaintParameters parameters, LayerManager layers)
         {
-            var width = targetTexture.width;
-            var height = targetTexture.height;
-            var texture = targetTexture.CaptureRenderTexture();
+            var sourceTexture = layers.TopMostLayer.RenderTexture;
+            
+            var width = sourceTexture.width;
+            var height = sourceTexture.height;
+            var texture = sourceTexture.CaptureRenderTexture();
             
             var sourcePixels = texture.GetPixels32();
             var maskPixels = new Color32[sourcePixels.Length];
-            var intPosition = Vector2Int.FloorToInt(parameters.Position);
+            var sourcePosition = parameters.Position;
+            sourcePosition.Scale(new Vector2(
+                (float) sourceTexture.width / targetTexture.width,
+                (float) sourceTexture.height / targetTexture.height));
+            var intPosition = Vector2Int.FloorToInt(sourcePosition);
             FloodFill(sourcePixels, maskPixels, width, height, intPosition, parameters.Color);
+            // TODO: Make optional:
+            Dilate(maskPixels, width, height);
             texture.SetPixels32(maskPixels);
             texture.Apply(false);
 
             BrushMaterial.color = parameters.Color;
             Graphics.Blit(texture, targetTexture, BrushMaterial);
+            Destroy(texture);
         }
 
         private bool EqualColors(Color32 a, Color32 b)
         {
-            var sumA = a.r + a.g + a.b;
-            var sumB = b.r + b.g + b.b;
-            return Mathf.Abs(sumA - sumB) <= Threshold * 3;
+            var sumA = a.r + a.g + a.b + a.a;
+            var sumB = b.r + b.g + b.b + b.a;
+            return Mathf.Abs(sumA - sumB) <= Threshold * 4;
         }
 
         private void FloodFill(Color32[] sourcePixels, Color32[] maskPixels,
@@ -126,6 +135,50 @@ namespace Tools
                     }
 
                     toProcess.Push(current);
+                }
+            }
+        }
+
+        private void Dilate(Color32[] pixels, int width, int height)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = x + y * width;
+                    if (pixels[index].r == 0)
+                    {
+                        continue;
+                    }
+
+                    if (x > 0 && pixels[index - 1].r == 0)
+                    {
+                        pixels[index - 1].g = 255;
+                    }
+                    if (x < width - 1 && pixels[index + 1].r == 0)
+                    {
+                        pixels[index + 1].g = 255;
+                    }
+                    if (y > 0 && pixels[index - width].r == 0)
+                    {
+                        pixels[index - width].g = 255;
+                    }
+                    if (y < height - 1 && pixels[index + width].r == 0)
+                    {
+                        pixels[index + width].g = 255;
+                    }
+                }
+            }
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = x + y * width;
+                    if (pixels[index].g == 255)
+                    {
+                        pixels[index] = Color.white;
+                    }
                 }
             }
         }

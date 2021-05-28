@@ -6,7 +6,7 @@ Shader "Paint/BlendBrush"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1, 1, 1, 1)
-//        [Toggle(USE_TEXTURE)] _UseTexture ("Use Texture", float) = 1
+        [Toggle(USE_TEXTURE)] _UseTexture ("Use Texture", float) = 1
         _Hardness ("Hardness", Range(0, 1)) = 1
     }
     

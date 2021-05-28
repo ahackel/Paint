@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 
 public class PaintLayer : MonoBehaviour
@@ -24,7 +23,7 @@ public class PaintLayer : MonoBehaviour
             ? RenderTexture.GetTemporary(size.x, size.y, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear)
             : new RenderTexture(size.x, size.y, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear)
         {
-            filterMode = FilterMode.Point,
+            // filterMode = FilterMode.Point,
             wrapMode = TextureWrapMode.Clamp
         };
 

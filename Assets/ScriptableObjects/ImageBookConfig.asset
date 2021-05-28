@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94a7acad3f50491a8b0c500976bae1af, type: 3}
+  m_Name: ImageBookConfig
+  m_EditorClassIdentifier: 
+  Documents:
+  - Name: Image01
+    Overlay: {fileID: 2800000, guid: 3e0d33509dabe4547a8c66fc8b35040c, type: 3}
+  - Name: Image02
+    Overlay: {fileID: 2800000, guid: 46ce6cc17a660498b87da6bf874fde1f, type: 3}
+  - Name: Image03
+    Overlay: {fileID: 2800000, guid: 39e2ffaa7650542c1841533f2896e4ce, type: 3}

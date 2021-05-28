@@ -19,10 +19,10 @@ MonoBehaviour:
   BrushMaterial: {fileID: 2100000, guid: b640f70f908ac45b0a32ddf0aedbb6fe, type: 2}
   BrushTexture: {fileID: 0}
   Flow: 1
-  BrushHardness: 0.157
+  BrushHardness: 0.93
   Angle: 0
   Roundness: 1
-  BrushSpacing: 0.16
+  BrushSpacing: 0.01
   Scatter: 0
   AngleJitter: 0
   RoundnessJitter: 0

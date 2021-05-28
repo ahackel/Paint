@@ -69,6 +69,9 @@
      <Compile Include="Assets\Scripts\Tools\PenTool.cs" />
      <Compile Include="Assets\Scripts\Utilities\PaintUtils.cs" />
      <Compile Include="Assets\Scripts\Controls\ColorPalette.cs" />
+     <Compile Include="Assets\Scripts\Configs\ImageBookConfig.cs" />
+     <Compile Include="Assets\Scripts\Configs\ColorSet.cs" />
+     <Compile Include="Assets\Scripts\Configs\BrushSizeSet.cs" />
      <None Include="Assets\UI\PaintScreen.uxml" />
      <None Include="Assets\Shaders\DarkenBrush.shader" />
      <None Include="Assets\UI\BookScreen.uxml" />

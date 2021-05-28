@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Configs;
 using UnityEngine.UIElements;
 using Utilities;
 
@@ -5,26 +7,26 @@ namespace Views
 {
     public class BookView : UiView
     {
-        const int ThumbnailCount = 16;
-
-        private Image[] _thumbnails = new Image[ThumbnailCount];
+        public ImageBookConfig ImageBookConfig;
+        
+        private List<Image> _thumbnails = new List<Image>();
         
         public override void Initialize()
         {
             base.Initialize();
             var container = _rootElement.Q<VisualElement>("thumbnail-container");
             container.Clear();
-            for (int i = 0; i < ThumbnailCount; i++)
+            foreach (var document in ImageBookConfig.Documents)
             {
-                _thumbnails[i] = new Image();
-                _thumbnails[i].AddToClassList("thumbnail");
+                var thumbnail = new Image();
+                thumbnail.AddToClassList("thumbnail");
                 
-                var filename = $"image{i:D2}";
-                _thumbnails[i].RegisterCallback<PointerDownEvent>(evt =>
+                thumbnail.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    OpenView("PaintView", filename);
+                    OpenView("PaintView", document);
                 });
-                container.Add(_thumbnails[i]);
+                container.Add(thumbnail);
+                _thumbnails.Add(thumbnail);
             }
         }
 
@@ -35,10 +37,16 @@ namespace Views
 
         private void LoadThumbnails()
         {
-            for (int i = 0; i < ThumbnailCount; i++)
+            for (int i = 0; i < ImageBookConfig.Documents.Count; i++)
             {
-                var filename = $"image{i:D2}";
-                _thumbnails[i].image = PaintUtils.LoadImageTexture(filename);
+                var document = ImageBookConfig.Documents[i];
+                var thumbnail = PaintUtils.LoadImageTexture(document.Name + ".thumb.png");
+                if (thumbnail == null)
+                {
+                    thumbnail = document.Overlay;
+                }
+
+                _thumbnails[i].image = thumbnail;
             }
         }
     }

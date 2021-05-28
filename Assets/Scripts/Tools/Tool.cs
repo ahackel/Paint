@@ -19,7 +19,7 @@ namespace Tools
         [Range(0f, 1f)]
         public float Opacity = 1f;
         
-        public virtual void Down(RenderTexture targetTexture, PaintParameters parameters)
+        public virtual void Down(RenderTexture targetTexture, PaintParameters parameters, LayerManager layers)
         {
         }
 

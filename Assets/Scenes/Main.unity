@@ -154,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UiService: {fileID: 11400000, guid: 2ebd68d09320f4c2497b998925ba8e5e, type: 2}
   RootElementName: BookScreen
+  ImageBookConfig: {fileID: 11400000, guid: 861ed05d897274287ba0d623ae7b4d0c, type: 2}
 --- !u!4 &114002235
 Transform:
   m_ObjectHideFlags: 0
@@ -288,6 +289,8 @@ MonoBehaviour:
   UiService: {fileID: 11400000, guid: 2ebd68d09320f4c2497b998925ba8e5e, type: 2}
   RootElementName: PaintScreen
   PaintDocument: {fileID: 1841619442}
+  ColorSet: {fileID: 11400000, guid: 03967bce71c994c6b8b1057a36b5f265, type: 2}
+  BrushSizeSet: {fileID: 11400000, guid: 16f089b6d948e465e8b79ea0289c03b3, type: 2}
 --- !u!1 &1376428123
 GameObject:
   m_ObjectHideFlags: 0

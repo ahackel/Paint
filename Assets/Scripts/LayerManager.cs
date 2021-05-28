@@ -1,12 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Utilities;
 
 public class LayerManager : MonoBehaviour
 {
-    public PaintLayer Current;
     public Material LayerMaterial;
 
     private List<PaintLayer> _layers = new List<PaintLayer>();
+    private int _currentLayerIndex = -1;
+    
+    public PaintLayer CurrentLayer => _currentLayerIndex < 0 ? null : _layers[_currentLayerIndex];
+    public PaintLayer BaseLayer => _layers[0];
+    public PaintLayer TopMostLayer => _layers[_layers.Count - 1];
+    public int CurrentLayerIndex => _currentLayerIndex;
 
     public PaintLayer Create(string layerName, Vector2Int size, bool temporary = false)
     {
@@ -15,11 +21,12 @@ public class LayerManager : MonoBehaviour
         layerObject.transform.SetParent(transform, false);
         var layer = layerObject.AddComponent<PaintLayer>();
         layer.Initialize(size, LayerMaterial, temporary);
-        _layers.Add(layer);
+        var layerIndex = _currentLayerIndex + 1;
+        _layers.Insert(layerIndex, layer);
 
-        if (Current == null)
+        if (CurrentLayer == null)
         {
-            Current = layer;
+            _currentLayerIndex = layerIndex;
         }
         UpdateLayerOrder();
 
@@ -33,12 +40,19 @@ public class LayerManager : MonoBehaviour
         {
             return;
         }
-            
-        if (Current == layer)
+
+        if (CurrentLayer == layer)
         {
-            Current = _layers.Count == 1 ? null : _layers[index == 0 ? 1 : index - 1];
+            if (_layers.Count == 1)
+            {
+                _currentLayerIndex = -1;
+            }
+            else
+            {
+                _currentLayerIndex = index == 0 ? 1 : index - 1;
+            }
         }
-        
+
         _layers.Remove(layer);
         Destroy(layer.gameObject);
         UpdateLayerOrder();
@@ -69,6 +83,20 @@ public class LayerManager : MonoBehaviour
         for (var i = 0; i < _layers.Count; i++)
         {
             _layers[i].Material.renderQueue = i;
+            _layers[i].transform.SetSiblingIndex(i);
         }
+    }
+
+    public Texture2D GetImageThumbnail()
+    {
+        var renderTexture = RenderTexture.GetTemporary(PaintUtils.ThumbnailWidth, PaintUtils.ThumbnailHeight, 0);
+        renderTexture.filterMode = FilterMode.Trilinear;
+        for (var i = 0; i < _layers.Count; i++)
+        {
+            Graphics.Blit(_layers[i].RenderTexture, renderTexture, _layers[i].Material);
+        }
+        var resizedTexture = renderTexture.CaptureRenderTexture();
+        RenderTexture.ReleaseTemporary(renderTexture);
+        return resizedTexture;
     }
 }

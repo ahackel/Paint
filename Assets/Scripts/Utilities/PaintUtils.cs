@@ -6,6 +6,9 @@ namespace Utilities
 {
 	public static class PaintUtils
 	{
+		public const int ThumbnailWidth = 512;
+		public const int ThumbnailHeight = ThumbnailWidth * 3 / 4;
+		
 		public static IEnumerable<float> DrawLine(Vector2 start, Vector2 end, float stepLength)
 		{
 			float dist = Vector2.Distance(start, end);
@@ -56,6 +59,33 @@ namespace Utilities
 			{
 				return null;
 			}
+		}
+
+		public static void SaveImageTexture(string filename, Texture2D texture)
+		{
+			var path = $"{Application.persistentDataPath}/{filename}";
+			var bytes = texture.EncodeToPNG();
+			File.WriteAllBytes(path, bytes);
+		}
+
+		public static void SaveImageThumbnail(string filename, Texture texture)
+		{
+			var path = $"{Application.persistentDataPath}/{filename}";
+			path = Path.ChangeExtension(path, ".thumb.png");
+			var thumbnail = GetScaledTexture(texture, ThumbnailWidth, ThumbnailHeight);
+			var bytes = thumbnail.EncodeToPNG();
+			File.WriteAllBytes(path, bytes);
+			Object.Destroy(thumbnail);
+		}
+
+		public static Texture2D GetScaledTexture(Texture texture, int width, int height)
+		{
+			var renderTexture = RenderTexture.GetTemporary(width, height, 0);
+			renderTexture.filterMode = FilterMode.Trilinear;
+			Graphics.Blit(texture, renderTexture);
+			var resizedTexture = renderTexture.CaptureRenderTexture();
+			RenderTexture.ReleaseTemporary(renderTexture);
+			return resizedTexture;
 		}
 	}
 }

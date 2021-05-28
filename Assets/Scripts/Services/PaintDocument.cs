@@ -67,7 +67,7 @@ namespace Services
                 //_copyPaintBufferMaterial.SetFloat(PropId_Alpha, 0);
                 //Graphics.Blit(texture, _paintBuffer, _copyPaintBufferMaterial);
                 Layers.Create("Base", new Vector2Int(texture.width, texture.height));
-                Graphics.Blit(texture, Layers.Current.RenderTexture);
+                Graphics.Blit(texture, Layers.CurrentLayer.RenderTexture);
                 Destroy(texture);
             }
             else
@@ -76,7 +76,7 @@ namespace Services
                 Clear(Color.white);
             }
 
-            _imageSize = Layers.Current.Size;
+            _imageSize = Layers.CurrentLayer.Size;
         }
 
         public void SaveImage()
@@ -87,17 +87,23 @@ namespace Services
             }
 			
             Debug.Log($"SaveImage '{_imageFilename}'");
-            var path = $"{Application.persistentDataPath}/{_imageFilename}";
             var texture = _history.GetCurrentState();
-            var bytes = texture.EncodeToPNG();
+            PaintUtils.SaveImageTexture(_imageFilename, texture);
             Destroy(texture);
-            File.WriteAllBytes(path, bytes);
+            SaveImageThumbnail();
+        }
+
+        private void SaveImageThumbnail()
+        {
+            var texture = Layers.GetImageThumbnail();
+            PaintUtils.SaveImageTexture(Path.ChangeExtension(_imageFilename, ".thumb.png"), texture);
+            Destroy(texture);
         }
 
         private Vector2 ScreenToTexture(Vector2 screenPosition)
         {
             var worldPosition = Camera.ScreenToWorldPoint(screenPosition);
-            var localPosition = Layers.Current.transform.InverseTransformPoint(worldPosition);
+            var localPosition = Layers.CurrentLayer.transform.InverseTransformPoint(worldPosition);
             var texturePosition = new Vector2(localPosition.x + 0.5f, localPosition.y + 0.5f) * ImageSize;
             return texturePosition;
         }
@@ -121,14 +127,14 @@ namespace Services
 
         public void Clear(Color color)
         {
-            RenderTexture.active = Layers.Current.RenderTexture;
+            RenderTexture.active = Layers.CurrentLayer.RenderTexture;
             GL.Clear(false, true, color);
             RenderTexture.active = null;
         }
 
         public void RecordUndo()
         {
-            _history.RecordState(Layers.Current.RenderTexture.CaptureRenderTexture());
+            _history.RecordState(Layers.CurrentLayer.RenderTexture.CaptureRenderTexture());
         }
 
         public void ResetUndoHistory()
@@ -146,7 +152,7 @@ namespace Services
 
             // _copyPaintBufferMaterial.SetFloat(PropId_Alpha, 0);
             // Graphics.Blit(_history.Undo(), Layers.Current.RenderTexture, _copyPaintBufferMaterial);
-            Graphics.Blit(_history.Undo(), Layers.Current.RenderTexture);
+            Graphics.Blit(_history.Undo(), Layers.CurrentLayer.RenderTexture);
         }
 
         public void Redo()
@@ -158,7 +164,7 @@ namespace Services
 
             // _copyPaintBufferMaterial.SetFloat(PropId_Alpha, 0);
             // Graphics.Blit(_history.Redo(), Layers.Current.RenderTexture, _copyPaintBufferMaterial);
-            Graphics.Blit(_history.Redo(), Layers.Current.RenderTexture);
+            Graphics.Blit(_history.Redo(), Layers.CurrentLayer.RenderTexture);
         }
 
         public void StartPainting()
@@ -179,7 +185,7 @@ namespace Services
             GL.Clear(false, true, Color.clear);
             RenderTexture.active = null;
 
-            CurrentTool.Down(_paintLayer.RenderTexture, GetPaintParameters());
+            CurrentTool.Down(_paintLayer.RenderTexture, GetPaintParameters(), Layers);
         }
 
         public void StopPainting()
