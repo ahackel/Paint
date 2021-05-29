@@ -37,7 +37,13 @@ namespace Tools
             texture.Apply(false);
 
             BrushMaterial.color = parameters.Color;
-            Graphics.Blit(texture, targetTexture, BrushMaterial);
+
+            var renderTexture = RenderTexture.GetTemporary(width, height, 0);
+            Graphics.Blit(texture, renderTexture);
+            //PaintUtils.GaussianBlur(renderTexture, 5f);
+
+            Graphics.Blit(renderTexture, targetTexture, BrushMaterial);
+            RenderTexture.ReleaseTemporary(renderTexture);
             Destroy(texture);
         }
 

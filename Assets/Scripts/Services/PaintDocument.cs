@@ -220,6 +220,11 @@ namespace Services
 
         public void Update()
         {
+            if (Keyboard.current.bKey.wasPressedThisFrame)
+            {
+                PaintUtils.GaussianBlur(Layers.CurrentLayer.RenderTexture);
+            }
+            
             //Blur();
             if (!_isPainting)
             {
@@ -238,7 +243,7 @@ namespace Services
             // _copyPaintBufferMaterial.SetFloat(PropId_Alpha, 1);
             //Graphics.Blit(_paintBuffer, _renderTexture, _copyPaintBufferMaterial, 0);
         }
-        
+
         private void DrawCursor()
         {
         	GL.PushMatrix();

@@ -87,5 +87,15 @@ namespace Utilities
 			RenderTexture.ReleaseTemporary(renderTexture);
 			return resizedTexture;
 		}
+		
+		public static void GaussianBlur(RenderTexture renderTexture, float radius = 4f)
+		{
+			var blurMaterial = new Material(Shader.Find("Paint/Blur"));
+			blurMaterial.SetFloat("_Radius", radius);
+			var buffer = RenderTexture.GetTemporary(renderTexture.descriptor);
+			Graphics.Blit(renderTexture, buffer, blurMaterial, 0);
+			Graphics.Blit(buffer, renderTexture, blurMaterial, 1);
+			RenderTexture.ReleaseTemporary(buffer);
+		}
 	}
 }
