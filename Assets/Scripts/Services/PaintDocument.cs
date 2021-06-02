@@ -238,7 +238,7 @@ namespace Services
                 return;
             }
 
-            CurrentTool.Move(_paintLayer.RenderTexture, GetPaintParameters());
+            CurrentTool.Move(_paintLayer.RenderTexture, GetPaintParameters(), _history.GetCurrentState());
 
             // _copyPaintBufferMaterial.SetFloat(PropId_Alpha, 1);
             //Graphics.Blit(_paintBuffer, _renderTexture, _copyPaintBufferMaterial, 0);

@@ -27,7 +27,7 @@ namespace Tools
         {
         }
 
-        public virtual void Move(RenderTexture targetTexture, PaintParameters parameters)
+        public virtual void Move(RenderTexture targetTexture, PaintParameters parameters, Texture2D getCurrentState)
         {
         }
     }

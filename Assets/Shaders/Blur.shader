@@ -3,7 +3,6 @@
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _TextureSize("TextureSize", Vector) = (1, 1, 1, 1)
         _Radius("Radius", Range(1,10)) = 4
     }
     
@@ -24,7 +23,6 @@
         };
 
         sampler2D _MainTex;
-        float4 _TextureSize;
 		float _Radius;
 		float2 _MainTex_TexelSize;
 

@@ -19,13 +19,18 @@ MonoBehaviour:
   BrushMaterial: {fileID: 2100000, guid: b640f70f908ac45b0a32ddf0aedbb6fe, type: 2}
   BrushTexture: {fileID: 0}
   Flow: 1
-  BrushHardness: 0.93
+  BrushHardness: 0.286
   Angle: 0
   Roundness: 1
-  BrushSpacing: 0.01
+  BrushSpacing: 0.05
   Scatter: 0
   AngleJitter: 0
   RoundnessJitter: 0
   FlowJitter: 0
   SizeJitter: 0
   PenPressureInfluence: 0
+  UseWaterColor: 0
+  WaterColorProcessingMaterial: {fileID: 2100000, guid: d6814de768a02428b921b023c71d4930,
+    type: 2}
+  BlurMaterial: {fileID: 2100000, guid: ec78cac637d7f4dfd93ec16f79177d6b, type: 2}
+  Wetness: 0.3

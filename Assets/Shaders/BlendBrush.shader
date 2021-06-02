@@ -69,7 +69,8 @@ Shader "Paint/BlendBrush"
             float d = 1 - saturate(distance(i.uv, 0.5) * 2);
             float2 a = abs(i.uv - 0.5) * 2;
             d = -sdCircle(i.uv - 0.5, 0.5);
-            return float4(_Color.rgb, smoothstep(0, saturate(1 - _Hardness), d));
+            float alpha = smoothstep(0, saturate(1 - _Hardness), d);
+            return float4(_Color.rgb, alpha);
 #endif
         }
 
@@ -80,8 +81,8 @@ Shader "Paint/BlendBrush"
         Tags { "RenderType"="Overlay" }
         
         Lighting Off
-        Blend one zero, One One
-        BlendOp Add
+        Blend SrcAlpha OneMinusSrcAlpha, SrcAlpha one
+        BlendOp Add 
         Cull Off
         ZWrite Off
         ZTest Always

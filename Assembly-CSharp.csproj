@@ -73,7 +73,7 @@
      <Compile Include="Assets\Scripts\Utilities\PaintUtils.cs" />
      <Compile Include="Assets\Scripts\Controls\ColorPalette.cs" />
      <None Include="Assets\UI\PaintScreen.uxml" />
-     <None Include="Assets\Shaders\Watercolor.shader" />
+     <None Include="Assets\Shaders\ProcessWaterColor.shader" />
      <None Include="Assets\Shaders\DarkenBrush.shader" />
      <None Include="Assets\UI\BookScreen.uxml" />
      <None Include="Assets\UI Toolkit\Sprites\EmojiOne Attribution.txt" />
