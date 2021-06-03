@@ -41,6 +41,8 @@ namespace Tools
 
         [Header("Pen")]
         [Range(0f, 1f)]
+        public float StrokeSpeedInfluence = 0f;
+        [Range(0f, 1f)]
         public float PenPressureInfluence = 0.3f;
         [Range(1f, 10f)]
         private const float MaxBrushScaleFromTilt = 4f;
@@ -73,11 +75,11 @@ namespace Tools
         public override void Move(RenderTexture targetTexture, PaintParameters parameters, Texture2D currentState)
         {
 	        // wear off 
-	        if (_lastParameters.Count > 0)
-	        {
-		        var color = currentState.GetPixel(Mathf.FloorToInt(parameters.Position.x), Mathf.FloorToInt(parameters.Position.y));
-		        parameters.Color = Color.Lerp(_lastParameters[0].Color, color, 0.01f);
-	        }
+	        // if (_lastParameters.Count > 0)
+	        // {
+		       //  var color = currentState.GetPixel(Mathf.FloorToInt(parameters.Position.x), Mathf.FloorToInt(parameters.Position.y));
+		       //  parameters.Color = Color.Lerp(_lastParameters[0].Color, color, 0.01f);
+	        // }
 
 	        if (!UseWaterColor)
 	        {
@@ -109,12 +111,15 @@ namespace Tools
 	        RenderTexture.ReleaseTemporary(blurredTexture);
         }
 
-        private void DrawStroke(RenderTexture targetTexture, PaintParameters parameters)
+        private void DrawStroke(RenderTexture targetTexture, PaintParameters current)
         {
-	        var current = parameters;
 	        var previous = _lastParameters.Count > 0 ? _lastParameters[0] : current;
 	        var last = _lastParameters.Count > 1 ? _lastParameters[1] : previous;
 	        bool hasMoved = _lastParameters.Count > 0;
+
+	        var actualSpeed = Vector2.Distance(current.Position, previous.Position) / (Time.deltaTime * 1000f);
+	        // Smooth speed:
+	        current.Speed = Mathf.Lerp(previous.Speed, actualSpeed, 0.2f);
 
 	        var brushSize = current.BrushSize;
 	        float angle = Angle;
@@ -176,12 +181,16 @@ namespace Tools
 			        ? PaintUtils.PointOnQuadraticCurve(startPosition, control, endPosition, t)
 			        : Vector2.LerpUnclamped(startPosition, endPosition, t);
 
-		        var offset = normal * (Random.Range(-1f, 1f) * brushSize * Scatter);
+		        var pressure = Mathf.Lerp(startPressure, endPressure, t);
+		        var speed = Mathf.Lerp(previous.Speed, current.Speed, t);
+		        var size = brushSize
+		                   * Mathf.Lerp(1f, pressure, PenPressureInfluence)
+		                   * (1f + Random.Range(-1f, 1f) * SizeJitter)
+		                   * Mathf.Lerp(1f, 1f / (1f + speed), StrokeSpeedInfluence);
+
+		        var offset = normal * (Random.Range(-1f, 1f) * size * Scatter);
 		        var offsetPos = pos + offset;
 
-		        var pressure = Mathf.Lerp(startPressure, endPressure, t);
-		        var size = brushSize
-		                   * (Mathf.Lerp(1f, pressure, PenPressureInfluence) + Random.Range(-1f, 1f) * SizeJitter);
 		        var rect = new Rect(
 			        offsetPos.x - 0.5f * size,
 			        offsetPos.y - 0.5f * size,
@@ -206,8 +215,8 @@ namespace Tools
 		        _lastParameters.RemoveAt(1);
 	        }
 
-	        parameters.Position = pos;
-	        _lastParameters.Insert(0, parameters);
+	        current.Position = pos;
+	        _lastParameters.Insert(0, current);
 
 	        GL.PopMatrix();
 	        RenderTexture.active = null;

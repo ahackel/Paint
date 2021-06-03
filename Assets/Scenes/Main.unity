@@ -530,7 +530,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d01c5b1e1f3145b49f1bf262d555970, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Current: {fileID: 0}
   LayerMaterial: {fileID: 2100000, guid: 9c19a1675412b45f39a512e8e3068a53, type: 2}
 --- !u!114 &1841619442
 MonoBehaviour:
@@ -546,7 +545,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Camera: {fileID: 324083319}
   Layers: {fileID: 1841619441}
-  Color: {r: 0, g: 0, b: 0, a: 0}
+  Color: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
   BrushSize: 32
   CurrentTool: {fileID: 11400000, guid: 32bbee83750e847058f8bc083d796540, type: 2}
   Tools:

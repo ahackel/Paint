@@ -69,7 +69,7 @@ Shader "Paint/BlendBrush"
             float d = 1 - saturate(distance(i.uv, 0.5) * 2);
             float2 a = abs(i.uv - 0.5) * 2;
             d = -sdCircle(i.uv - 0.5, 0.5);
-            float alpha = smoothstep(0, saturate(1 - _Hardness), d);
+            float alpha = smoothstep(0, saturate(1 - _Hardness), d) * _Color.a;
             return float4(_Color.rgb, alpha);
 #endif
         }

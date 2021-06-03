@@ -70,21 +70,38 @@
         {
             CGPROGRAM
             #pragma fragment frag
+
+			float random (float2 p)
+			{
+				float3 p3 = frac(float3(p.xyx) * .1031);
+    			p3 += dot(p3, p3.yzx + 33.33);
+    			return frac((p3.x + p3.y) * p3.z);
+			}
+
+            float random2(float2 pos)
+            {
+                return step(0.9, random(pos)); 
+            }
             
             float4 frag (v2f i) : SV_Target
             {
                 const float4 lastFrameData = tex2D(_MainTex, i.uv);
-                const float4 lastFrameDataBlurred = tex2D(_BlurredTex, i.uv);
+                float4 lastFrameDataBlurred = tex2D(_BlurredTex, i.uv);
                 const float4 strokeData = tex2D(_StrokeTex, i.uv);
 
-                float wetness = max(lastFrameData.a, _Wetness);
-                wetness = saturate(wetness - _DryRate);
+                float wetness = max(lastFrameDataBlurred.a, _Wetness);
+                wetness = max(0, wetness - _DryRate);
+                float pigments = 1 - saturate(0.3333 * (lastFrameData.r + lastFrameData.g + lastFrameData.b)) * 0.995;
 
-                float3 color = lerp(lastFrameData.rgb, lastFrameDataBlurred.rgb, wetness);
-                color.rgb = lerp(color.rgb, strokeData.rgb, strokeData.a);
-                wetness = max(wetness, strokeData.a);
+                float3 color = lerp(lastFrameData.rgb, lastFrameDataBlurred.rgb, saturate(wetness) * pigments);
 
-                return saturate(float4(color, wetness));
+                float strokeOpacity = strokeData.a; //saturate(1 - wetnessDelta);
+                color.rgb = lerp(color.rgb, min(color.rgb, strokeData.rgb), strokeOpacity);
+                wetness += strokeData.a;
+              
+
+                
+                return saturate(float4(color.rgb, wetness));
             }
             
             ENDCG

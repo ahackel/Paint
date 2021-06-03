@@ -52,7 +52,7 @@
             float4 frag (v2f i) : SV_Target
             {
                 float4 tex = tex2D(_MainTex, i.uv.xy);
-                //tex.a *= _Color.a;
+                tex.a *= _Color.a;
                 return tex;
             }
             

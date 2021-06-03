@@ -10,6 +10,17 @@ public class PaintLayer : MonoBehaviour
     public Vector2Int Size => new Vector2Int(RenderTexture.width, RenderTexture.height);
     public Material Material => _material;
 
+    public float Opacity
+    {
+        get => Material.color.a;
+        set
+        {
+            var color = Material.color;
+            color.a = value;
+            Material.SetColor("_Color", color);
+        }
+    }
+
     public void Initialize(Vector2Int size, Material material, bool temporary)
     {
         _temporary = temporary;

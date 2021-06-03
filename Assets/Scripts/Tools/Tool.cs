@@ -14,6 +14,7 @@ namespace Tools
             public Vector2 Tilt;
             public Color Color;
             public float BrushSize;
+            public float Speed;
         }
 
         [Range(0f, 1f)]

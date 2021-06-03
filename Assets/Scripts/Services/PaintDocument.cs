@@ -181,6 +181,7 @@ namespace Services
 
             _isPainting = true;
             _paintLayer = Layers.Create("Paint", ImageSize, true);
+            _paintLayer.Opacity = CurrentTool.Opacity;
             RenderTexture.active = _paintLayer.RenderTexture;
             GL.Clear(false, true, Color.clear);
             RenderTexture.active = null;
@@ -214,7 +215,8 @@ namespace Services
                 Pressure = pointer.pressure.ReadValue(),
                 BrushSize = BrushSize,
                 Tilt = pen != null ? pen.tilt.ReadValue() : Vector2.zero,
-                Color = Color
+                Color = Color,
+                Speed = 0
             };
         }
 
