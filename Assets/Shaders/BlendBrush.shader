@@ -81,7 +81,7 @@ Shader "Paint/BlendBrush"
         Tags { "RenderType"="Overlay" }
         
         Lighting Off
-        Blend SrcAlpha OneMinusSrcAlpha, SrcAlpha one
+        Blend One Zero, one one
         BlendOp Add 
         Cull Off
         ZWrite Off

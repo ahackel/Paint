@@ -45,7 +45,7 @@ namespace Tools
         [Range(0f, 1f)]
         public float PenPressureInfluence = 0.3f;
         [Range(1f, 10f)]
-        private const float MaxBrushScaleFromTilt = 4f;
+        public const float MaxBrushScaleFromTilt = 4f;
 
         [Header("WaterColor")]
         public bool UseWaterColor;
@@ -60,16 +60,27 @@ namespace Tools
         
         private static readonly int WetBufferPropId = Shader.PropertyToID("_WetBuffer");
 
+        private const float WaterColorDownScale = 0.5f;
+
         public override void Down(RenderTexture targetTexture, PaintParameters parameters, LayerManager layers)
         {
-	        _waterColorBuffer = RenderTexture.GetTemporary(targetTexture.width, targetTexture.height, 0);
-	        Graphics.Blit(layers.CurrentLayer.RenderTexture, _waterColorBuffer, WaterColorProcessingMaterial, 0);
+	        if (UseWaterColor)
+	        {
+		        int width = Mathf.FloorToInt(targetTexture.width * WaterColorDownScale);
+		        int height = Mathf.FloorToInt(targetTexture.height * WaterColorDownScale);
+		        _waterColorBuffer = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
+		        Graphics.Blit(layers.CurrentLayer.RenderTexture, _waterColorBuffer, WaterColorProcessingMaterial, 0);
+	        }
         }
 
         public override void Up(RenderTexture targetTexture, PaintParameters parameters)
         {
-	        RenderTexture.ReleaseTemporary(_waterColorBuffer);
-			_lastParameters.Clear();
+	        if (UseWaterColor)
+	        {
+		        RenderTexture.ReleaseTemporary(_waterColorBuffer);
+	        }
+
+	        _lastParameters.Clear();
         }
 
         public override void Move(RenderTexture targetTexture, PaintParameters parameters, Texture2D currentState)
@@ -89,10 +100,12 @@ namespace Tools
 
 	        var tempTexture = RenderTexture.GetTemporary(_waterColorBuffer.descriptor);
 	        var blurredTexture = RenderTexture.GetTemporary(_waterColorBuffer.descriptor);
-	        var strokeTexture = RenderTexture.GetTemporary(targetTexture.descriptor);
-
+	        var strokeTexture = RenderTexture.GetTemporary(_waterColorBuffer.descriptor);
+	        
+	        strokeTexture.Clear(Color.clear);
+	        
 	        // stroke
-	        DrawStroke(strokeTexture, parameters);
+	        DrawStroke(strokeTexture, parameters, WaterColorDownScale);
 	        WaterColorProcessingMaterial.SetTexture("_StrokeTex", strokeTexture);
 	        //WaterColorProcessingMaterial.SetFloat("_Wetness", Wetness);
 	        
@@ -100,7 +113,7 @@ namespace Tools
 	        Graphics.Blit(_waterColorBuffer, tempTexture, BlurMaterial, 0);
 	        Graphics.Blit(tempTexture, blurredTexture, BlurMaterial, 1);
 	        WaterColorProcessingMaterial.SetTexture("_BlurredTex", blurredTexture);
-
+	        
 	        // process
 	        Graphics.Blit(_waterColorBuffer, tempTexture, WaterColorProcessingMaterial, 1);
 	        Graphics.Blit(tempTexture, _waterColorBuffer);
@@ -111,7 +124,7 @@ namespace Tools
 	        RenderTexture.ReleaseTemporary(blurredTexture);
         }
 
-        private void DrawStroke(RenderTexture targetTexture, PaintParameters current)
+        private void DrawStroke(RenderTexture targetTexture, PaintParameters current, float textureScale = 1f)
         {
 	        var previous = _lastParameters.Count > 0 ? _lastParameters[0] : current;
 	        var last = _lastParameters.Count > 1 ? _lastParameters[1] : previous;
@@ -139,10 +152,10 @@ namespace Tools
 	        if (current.IsPen)
 	        {
 		        var tilt = current.Tilt;
-		        var azimuth = Mathf.Atan2(tilt.y, tilt.x);
+		        //var azimuth = Mathf.Atan2(tilt.y, tilt.x);
 		        var length = Mathf.Clamp01(tilt.magnitude);
 		        var altitude = Mathf.Atan2(1f - length, length);
-		        angle = azimuth * Mathf.Rad2Deg;
+		        //angle = azimuth * Mathf.Rad2Deg;
 		        var brushAngle = 1f - altitude / (Mathf.PI * 0.5f);
 		        // scale brush none linearly:
 		        roundness = 1f + Mathf.Pow(brushAngle, 4f) * MaxBrushScaleFromTilt;
@@ -183,30 +196,32 @@ namespace Tools
 
 		        var pressure = Mathf.Lerp(startPressure, endPressure, t);
 		        var speed = Mathf.Lerp(previous.Speed, current.Speed, t);
-		        var size = brushSize
+		        var modifiedBrushSize = brushSize
 		                   * Mathf.Lerp(1f, pressure, PenPressureInfluence)
 		                   * (1f + Random.Range(-1f, 1f) * SizeJitter)
 		                   * Mathf.Lerp(1f, 1f / (1f + speed), StrokeSpeedInfluence);
 
-		        var offset = normal * (Random.Range(-1f, 1f) * size * Scatter);
-		        var offsetPos = pos + offset;
-
-		        var rect = new Rect(
-			        offsetPos.x - 0.5f * size,
-			        offsetPos.y - 0.5f * size,
-			        size, size);
 
 		        angle = Angle + Mathf.Lerp(0f, Random.Range(-180f, 180f), AngleJitter);
 		        var localBrushRotation = Quaternion.Euler(0, 0, -angle);
 		        roundness = Mathf.Clamp01(Roundness + Random.Range(-1f, 1f) * RoundnessJitter);
 
-		        var matrix = Matrix4x4.TRS(offsetPos, localBrushRotation,
-			        new Vector3(roundness, 1f, 1f)) * Matrix4x4.TRS(-offsetPos, Quaternion.identity, Vector3.one);
+		        var offset = normal * (Random.Range(-1f, 1f) * modifiedBrushSize * Scatter);
+		        var posOnTexture = (pos + offset) * textureScale;
+		        var sizeOnTexture = modifiedBrushSize * textureScale;
+
+		        var matrix = Matrix4x4.TRS(posOnTexture, localBrushRotation,
+			        new Vector3(roundness, 1f, 1f)) * Matrix4x4.TRS(-posOnTexture, Quaternion.identity, Vector3.one);
 		        GL.MultMatrix(matrix);
 
 		        var color = UseOwnColor ? Color : current.Color;
 		        color.a = Mathf.Clamp01(Flow + Random.Range(-1f, 1f) * FlowJitter);
 		        BrushMaterial.color = color;
+		        
+		        var rect = new Rect(
+			        posOnTexture.x - 0.5f * sizeOnTexture,
+			        posOnTexture.y - 0.5f * sizeOnTexture,
+			        sizeOnTexture, sizeOnTexture);
 		        Graphics.DrawTexture(rect, brushTexture, BrushMaterial);
 	        }
 

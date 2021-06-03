@@ -42,7 +42,6 @@ public class PaintLayer : MonoBehaviour
         _material = Instantiate(material);
         _material.mainTexture = _renderTexture;
         meshRenderer.sharedMaterial = _material;
-        
     }
 
     public void OnDestroy()

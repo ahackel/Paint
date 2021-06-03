@@ -710,6 +710,15 @@
  <Reference Include="UnityEngine.UIElementsGameObjectsModule">
  <HintPath>/Users/andreas.hackel/Projects/Paint/Library/ScriptAssemblies/UnityEngine.UIElementsGameObjectsModule.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.ProjectAuditor.Editor.UI.Framework">
+ <HintPath>/Users/andreas.hackel/Projects/Paint/Library/ScriptAssemblies/Unity.ProjectAuditor.Editor.UI.Framework.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.ProjectAuditor.Editor.UI">
+ <HintPath>/Users/andreas.hackel/Projects/Paint/Library/ScriptAssemblies/Unity.ProjectAuditor.Editor.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.ProjectAuditor.Editor">
+ <HintPath>/Users/andreas.hackel/Projects/Paint/Library/ScriptAssemblies/Unity.ProjectAuditor.Editor.dll</HintPath>
+ </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp.csproj">

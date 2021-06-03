@@ -21,7 +21,8 @@ namespace Tools
             
             var width = sourceTexture.width;
             var height = sourceTexture.height;
-            var texture = sourceTexture.CaptureRenderTexture();
+            var texture = new Texture2D(width, height);
+            sourceTexture.CopyToTexture(texture);
             
             var sourcePixels = texture.GetPixels32();
             var maskPixels = new Color32[sourcePixels.Length];

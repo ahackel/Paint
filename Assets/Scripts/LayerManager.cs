@@ -95,7 +95,9 @@ public class LayerManager : MonoBehaviour
         {
             Graphics.Blit(_layers[i].RenderTexture, renderTexture, _layers[i].Material);
         }
-        var resizedTexture = renderTexture.CaptureRenderTexture();
+
+        var resizedTexture = new Texture2D(PaintUtils.ThumbnailWidth, PaintUtils.ThumbnailHeight);
+        renderTexture.CopyToTexture(resizedTexture);
         RenderTexture.ReleaseTemporary(renderTexture);
         return resizedTexture;
     }

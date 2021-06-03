@@ -19,7 +19,7 @@ namespace Services
         public Tool CurrentTool;
         public Tool[] Tools;
         private bool _isPainting;
-        private readonly UndoHistory<Texture2D> _history = new UndoHistory<Texture2D>();
+        private TextureUndoHistory _history = new TextureUndoHistory(10, defaultImageWidth, defaultImageHeight);
         private string _imageFilename;
         private Material _blurMaterial;
         private Vector2Int _imageSize = new Vector2Int(0, 0);
@@ -73,7 +73,7 @@ namespace Services
             else
             {
                 Layers.Create("Base", new Vector2Int(defaultImageWidth, defaultImageHeight));
-                Clear(Color.white);
+                Clear();
             }
 
             _imageSize = Layers.CurrentLayer.Size;
@@ -121,20 +121,14 @@ namespace Services
 
         public void Clear()
         {
-            Clear(new Color(1, 1, 1, 1));
+            Layers.CurrentLayer.RenderTexture.Clear(Color.white);
             RecordUndo();
-        }
-
-        public void Clear(Color color)
-        {
-            RenderTexture.active = Layers.CurrentLayer.RenderTexture;
-            GL.Clear(false, true, color);
-            RenderTexture.active = null;
         }
 
         public void RecordUndo()
         {
-            _history.RecordState(Layers.CurrentLayer.RenderTexture.CaptureRenderTexture());
+            var texture = _history.RecordState();
+            Layers.CurrentLayer.RenderTexture.CopyToTexture(texture);
         }
 
         public void ResetUndoHistory()
@@ -208,13 +202,14 @@ namespace Services
         {
             var pointer = Pointer.current;
             var pen = Pen.current;
+            var isPen = pointer is Pen;
             return new Tool.PaintParameters
             {
                 IsPen = pointer is Pen,
                 Position = ScreenToTexture(pointer.position.ReadValue()),
-                Pressure = pointer.pressure.ReadValue(),
+                Pressure = isPen ? pen.pressure.ReadValue() + 1f : 1f,
                 BrushSize = BrushSize,
-                Tilt = pen != null ? pen.tilt.ReadValue() : Vector2.zero,
+                Tilt = isPen ? pen.tilt.ReadValue() : Vector2.zero,
                 Color = Color,
                 Speed = 0
             };

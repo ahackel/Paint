@@ -33,16 +33,19 @@ namespace Utilities
 			return start * f1 + control * f2 + end * f3;
 		}
 	
-		public static Texture2D CaptureRenderTexture(this RenderTexture renderTexture)
+		public static void CopyToTexture(this RenderTexture renderTexture, Texture2D target)
 		{
-			var width = renderTexture.width;
-			var height = renderTexture.height;
-			var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 			RenderTexture.active = renderTexture;
-			texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-			texture.Apply(false);
+			target.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
+			target.Apply(false);
 			RenderTexture.active = null;
-			return texture;
+		}
+		
+		public static void Clear(this RenderTexture renderTexture, Color color)
+		{
+			RenderTexture.active = renderTexture;
+			GL.Clear(false, true, color);
+			RenderTexture.active = null;
 		}
 
 		public static Texture2D LoadImageTexture(string filename)
@@ -68,25 +71,25 @@ namespace Utilities
 			File.WriteAllBytes(path, bytes);
 		}
 
-		public static void SaveImageThumbnail(string filename, Texture texture)
-		{
-			var path = $"{Application.persistentDataPath}/{filename}";
-			path = Path.ChangeExtension(path, ".thumb.png");
-			var thumbnail = GetScaledTexture(texture, ThumbnailWidth, ThumbnailHeight);
-			var bytes = thumbnail.EncodeToPNG();
-			File.WriteAllBytes(path, bytes);
-			Object.Destroy(thumbnail);
-		}
-
-		public static Texture2D GetScaledTexture(Texture texture, int width, int height)
-		{
-			var renderTexture = RenderTexture.GetTemporary(width, height, 0);
-			renderTexture.filterMode = FilterMode.Trilinear;
-			Graphics.Blit(texture, renderTexture);
-			var resizedTexture = renderTexture.CaptureRenderTexture();
-			RenderTexture.ReleaseTemporary(renderTexture);
-			return resizedTexture;
-		}
+		// public static void SaveImageThumbnail(string filename, Texture texture)
+		// {
+		// 	var path = $"{Application.persistentDataPath}/{filename}";
+		// 	path = Path.ChangeExtension(path, ".thumb.png");
+		// 	var thumbnail = GetScaledTexture(texture, ThumbnailWidth, ThumbnailHeight);
+		// 	var bytes = thumbnail.EncodeToPNG();
+		// 	File.WriteAllBytes(path, bytes);
+		// 	Object.Destroy(thumbnail);
+		// }
+		//
+		// public static Texture2D GetScaledTexture(Texture texture, int width, int height)
+		// {
+		// 	var renderTexture = RenderTexture.GetTemporary(width, height, 0);
+		// 	renderTexture.filterMode = FilterMode.Trilinear;
+		// 	Graphics.Blit(texture, renderTexture);
+		// 	var resizedTexture = renderTexture.CopyToTexture();
+		// 	RenderTexture.ReleaseTemporary(renderTexture);
+		// 	return resizedTexture;
+		// }
 		
 		public static void GaussianBlur(RenderTexture renderTexture, float radius = 4f)
 		{

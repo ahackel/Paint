@@ -1,7 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UndoHistory<T> where T : Object
+
+public class TextureUndoHistory : UndoHistory<Texture2D>
+{
+    private TexturePool _pool;
+    
+    public TextureUndoHistory(int capacity, int width, int height)
+    {
+        Capacity = capacity;
+        _pool = new TexturePool(capacity, width, height);
+    }
+
+    protected override void DeleteState(Texture2D state)
+    {
+        _pool.Return(state);
+    }
+
+    protected override Texture2D CreateState()
+    {
+        return _pool.Get();
+    }
+}
+
+
+public abstract class UndoHistory<T> where T : Object
 {
     private List<T> _states = new List<T>();
     private int _position = -1;
@@ -9,11 +32,16 @@ public class UndoHistory<T> where T : Object
     public bool CanUndo() => _position > 0;
     public bool CanRedo() => _position < _states.Count - 1;
     public int Capacity = 10;
+
+    protected abstract void DeleteState(T state);
+
+    protected abstract T CreateState();
     
-    public void RecordState(T state)
+    public T RecordState()
     {
         if (_position == Capacity - 1)
         {
+            DeleteState(_states[0]);
             _states.RemoveAt(0);
             _position--;
         }
@@ -21,11 +49,17 @@ public class UndoHistory<T> where T : Object
         // remove all future steps
         if (_position > -1 && CanRedo())
         {
-            _states.RemoveRange(_position + 1, _states.Count - _position - 1);
+            for (int i = _states.Count - 1; i > _position; i--)
+            {
+                DeleteState(_states[i]);
+                _states.RemoveAt(i);
+            }
         }
 
         _position++;
+        var state = CreateState();
         _states.Add(state);
+        return state;
     }
 
     public T Undo()
@@ -57,6 +91,10 @@ public class UndoHistory<T> where T : Object
 
     public void Clear()
     {
+        foreach (var state in _states)
+        {
+            DeleteState(state);
+        }
         _states.Clear();
         _position = -1;
     }
