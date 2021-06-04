@@ -12,26 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7c2e19d06fc410aa7994595201c2433, type: 3}
   m_Name: PenTool
   m_EditorClassIdentifier: 
-  Opacity: 0.643
+  Opacity: 1
   Color: {r: 0.5471698, g: 0.30713776, b: 0.30713776, a: 1}
   UseOwnColor: 0
   QuadraticInterpolation: 1
   BrushMaterial: {fileID: 2100000, guid: b640f70f908ac45b0a32ddf0aedbb6fe, type: 2}
   BrushTexture: {fileID: 0}
   Flow: 1
-  BrushHardness: 0.842
+  BrushHardness: 1
   Angle: 0
   Roundness: 0.984
-  BrushSpacing: 0.06
-  Scatter: 0
+  BrushSpacing: 0.01
+  Scatter: 0.1
   AngleJitter: 0.784
   RoundnessJitter: 0.315
   FlowJitter: 0.523
   SizeJitter: 0
-  StrokeSpeedInfluence: 0.34
-  PenPressureInfluence: 0.859
+  StrokeSpeedInfluence: 0.522
+  PenPressureInfluence: 0.942
   UseWaterColor: 1
   WaterColorProcessingMaterial: {fileID: 2100000, guid: d6814de768a02428b921b023c71d4930,
     type: 2}
   BlurMaterial: {fileID: 2100000, guid: ec78cac637d7f4dfd93ec16f79177d6b, type: 2}
   Wetness: 0
+  DryRate: 0.029
+  DiffusionScale: 0.25

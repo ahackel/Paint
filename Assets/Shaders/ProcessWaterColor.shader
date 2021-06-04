@@ -5,8 +5,11 @@
         [NoScaleOffset] _MainTex ("Texture", 2D) = "red" {}
         [NoScaleOffset] _BlurredTex ("Blurred Texture", 2D) = "red" {}
         [NoScaleOffset] _StrokeTex ("Stroke Texture", 2D) = "red" {}
-        _DryRate ("Dry Rate", Range(0.01, 1)) = 0.01
-        _Wetness ("Wetness", Range(0.01, 1)) = 0.01
+        [NoScaleOffset] _DiffusionTex ("Diffusion Texture", 2D) = "grey" {}
+        _DryRate ("Dry Rate", Range(0, 1)) = 0.01
+        _Wetness ("Wetness", Range(0, 1)) = 0.01
+        _Diffusion ("Diffusion", Range(0, 1)) = 0.5
+        _DiffusionScale ("Diffusion Scale", Vector) = (1, 1, 1, 1)
     }
     
     CGINCLUDE
@@ -28,8 +31,11 @@
         sampler2D _MainTex;
         sampler2D _BlurredTex;
         sampler2D _StrokeTex;
+        sampler2D _DiffusionTex;
         float _DryRate;
         float _Wetness;
+        float _Diffusion;
+        float2 _DiffusionScale;
 
         v2f vert (appdata v)
         {
@@ -85,17 +91,18 @@
             
             float4 frag (v2f i) : SV_Target
             {
+                float2 diffusionUvs = i.uv; // + _Diffusion * (tex2D(_DiffusionTex, i.uv * _DiffusionScale) - 0.5);
                 const float4 lastFrameData = tex2D(_MainTex, i.uv);
-                float4 lastFrameDataBlurred = tex2D(_BlurredTex, i.uv);
+                float4 lastFrameDataBlurred = tex2D(_BlurredTex, diffusionUvs);
                 const float4 strokeData = tex2D(_StrokeTex, i.uv);
 
-                float wetness = max(lastFrameDataBlurred.a, _Wetness);
+                float pigments = lerp(1, 0.3, saturate(0.3333 * (lastFrameData.r + lastFrameData.g + lastFrameData.b)));
+                float wetness = max(lastFrameData.a, _Wetness);
                 wetness = max(0, wetness - _DryRate);
-                float pigments = 1 - saturate(0.3333 * (lastFrameData.r + lastFrameData.g + lastFrameData.b)) * 0.995;
 
                 float3 color = lerp(lastFrameData.rgb, lastFrameDataBlurred.rgb, saturate(wetness) * pigments);
 
-                float strokeOpacity = strokeData.a; //saturate(1 - wetnessDelta);
+                float strokeOpacity = strokeData.a;
                 color.rgb = lerp(color.rgb, min(color.rgb, strokeData.rgb), strokeOpacity);
                 wetness += strokeData.a;
               

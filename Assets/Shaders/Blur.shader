@@ -3,7 +3,10 @@
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+	    [NoScaleOffset] _DiffusionTex ("Diffusion Texture", 2D) = "grey" {}
         _Radius("Radius", Range(1,10)) = 4
+	    _Diffusion ("Diffusion", Range(0, 1)) = 0.5
+        _DiffusionScale ("Diffusion Scale", Vector) = (1, 1, 1, 1)
     }
     
     CGINCLUDE
@@ -25,6 +28,9 @@
         sampler2D _MainTex;
 		float _Radius;
 		float2 _MainTex_TexelSize;
+        sampler2D _DiffusionTex;
+        float _Diffusion;
+        float2 _DiffusionScale;
 
         v2f vert (appdata v)
         {
@@ -72,7 +78,8 @@
             
             float4 frag (v2f i) : SV_Target
             {
-            	return gaussianBlur(i.uv, float2(1, 0));
+            	float2 diffusionUvs = i.uv + float2(1, 0) * _Diffusion * (tex2D(_DiffusionTex, i.uv * _DiffusionScale) - 0.5);
+            	return gaussianBlur(diffusionUvs, float2(1, 0));
             }
             
             ENDCG
@@ -86,7 +93,8 @@
             
             float4 frag (v2f i) : SV_Target
             {
-            	return gaussianBlur(i.uv, float2(0, 1));
+            	float2 diffusionUvs = i.uv + float2(0, 1) * _Diffusion * (tex2D(_DiffusionTex, i.uv * _DiffusionScale) - 0.5);
+            	return gaussianBlur(diffusionUvs, float2(0, 1));
             }
             
             ENDCG

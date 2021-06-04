@@ -207,7 +207,7 @@ namespace Services
             {
                 IsPen = pointer is Pen,
                 Position = ScreenToTexture(pointer.position.ReadValue()),
-                Pressure = isPen ? pen.pressure.ReadValue() + 1f : 1f,
+                Pressure = isPen ? pen.pressure.ReadValue() + 0.5f : 1f,
                 BrushSize = BrushSize,
                 Tilt = isPen ? pen.tilt.ReadValue() : Vector2.zero,
                 Color = Color,

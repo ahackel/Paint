@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking;
 using Utilities;
+using Random = UnityEngine.Random;
 
 namespace Tools
 {
@@ -53,14 +55,24 @@ namespace Tools
         public Material BlurMaterial;
         [Range(0f, 1f)]
         public float Wetness = 0.3f;
+        [Range(0f, 1f)]
+        public float DryRate = 0.3f;
+        [Range(0.1f, 10f)]
+        public float DiffusionScale = 0.5f;
 
 
         private List<PaintParameters> _lastParameters = new List<PaintParameters>();
         private RenderTexture _waterColorBuffer;
+        private Texture2D _diffusionTexture;
         
         private static readonly int WetBufferPropId = Shader.PropertyToID("_WetBuffer");
 
         private const float WaterColorDownScale = 0.5f;
+
+        private void OnEnable()
+        {
+	        _diffusionTexture = PaintUtils.GenerateDiffusionTexture();
+        }
 
         public override void Down(RenderTexture targetTexture, PaintParameters parameters, LayerManager layers)
         {
@@ -70,6 +82,11 @@ namespace Tools
 		        int height = Mathf.FloorToInt(targetTexture.height * WaterColorDownScale);
 		        _waterColorBuffer = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
 		        Graphics.Blit(layers.CurrentLayer.RenderTexture, _waterColorBuffer, WaterColorProcessingMaterial, 0);
+		        BlurMaterial.SetTexture("_DiffusionTex", _diffusionTexture);
+		        BlurMaterial.SetVector("_DiffusionScale", new Vector2(
+			        width / _diffusionTexture.width, height / _diffusionTexture.height) * DiffusionScale);
+		        WaterColorProcessingMaterial.SetFloat("_Wetness", Wetness);
+		        WaterColorProcessingMaterial.SetFloat("_DryRate", DryRate);
 	        }
         }
 
@@ -149,6 +166,8 @@ namespace Tools
 	        BrushMaterial.SetFloat("_Hardness", BrushHardness);
 	        var brushTexture = BrushTexture != null ? BrushTexture : Texture2D.whiteTexture;
 
+	        var positionOffset = Vector2.zero;
+	        
 	        if (current.IsPen)
 	        {
 		        var tilt = current.Tilt;
@@ -159,6 +178,8 @@ namespace Tools
 		        var brushAngle = 1f - altitude / (Mathf.PI * 0.5f);
 		        // scale brush none linearly:
 		        roundness = 1f + Mathf.Pow(brushAngle, 4f) * MaxBrushScaleFromTilt;
+
+		        positionOffset = new Vector2(tilt.x, -tilt.y) * brushSize * 0.4f;
 	        }
 
 	        var startPosition = previous.Position;
@@ -206,7 +227,7 @@ namespace Tools
 		        var localBrushRotation = Quaternion.Euler(0, 0, -angle);
 		        roundness = Mathf.Clamp01(Roundness + Random.Range(-1f, 1f) * RoundnessJitter);
 
-		        var offset = normal * (Random.Range(-1f, 1f) * modifiedBrushSize * Scatter);
+		        var offset = normal * (Random.Range(-1f, 1f) * modifiedBrushSize * Scatter) + positionOffset;
 		        var posOnTexture = (pos + offset) * textureScale;
 		        var sizeOnTexture = modifiedBrushSize * textureScale;
 

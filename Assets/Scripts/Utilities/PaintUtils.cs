@@ -100,5 +100,25 @@ namespace Utilities
 			Graphics.Blit(buffer, renderTexture, blurMaterial, 1);
 			RenderTexture.ReleaseTemporary(buffer);
 		}
+
+		public static Texture2D GenerateDiffusionTexture()
+		{
+			const int size = 128;
+			var pixels = new Color32[size * size];
+			for (var i = 0; i < pixels.Length; i++)
+			{
+				pixels[i] = new Color32(
+					(byte)Random.Range(0, 255),
+					(byte)Random.Range(0, 255),
+					(byte)Random.Range(0, 255),
+					(byte)Random.Range(0, 255)
+				);
+			}
+
+			var texture = new Texture2D(size, size);
+			texture.SetPixels32(pixels);
+			texture.Apply();
+			return texture;
+		}
 	}
 }
